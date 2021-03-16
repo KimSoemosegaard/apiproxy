@@ -35,12 +35,14 @@ proxy =
 ##  Sites
 ##  --------------------------------------------------------------------
 
+[celltrack.eu]
+
+[ipinfo.io]
+#apikey = 
+
 [jsonip.com]
 
 [restcountries.eu]
 
 #[google.com]
-#apikey = AIzaSyB6KNIjwVg8fyyapWjzEq2tEVvKmifbxlM
-
-[ipinfo.io]
-#apikey = 50c1b840344f98
+#apikey = 
