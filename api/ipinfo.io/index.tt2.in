@@ -1,0 +1,4 @@
+[% PROCESS header.inc %]
+<h2>ipinfo.ip</h2>
+[% PROCESS site/ipinfo.io/ip.inc %]
+[% PROCESS footer.inc %]

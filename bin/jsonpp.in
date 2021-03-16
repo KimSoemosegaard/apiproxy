@@ -1,0 +1,28 @@
+#!/usr/bin/env perl
+##  ====================================================================
+##  closint/bin/jsonpp - JSON pretty printer
+##  ====================================================================
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use JSON -convert_blessed_universally;
+
+
+##  Main program
+{
+    my $jsonpp = JSON->new->allow_nonref->convert_blessed->pretty or
+	die "ERROR: Cannot create JSON pretty printer\n";
+
+    while (my $line = <STDIN>) {
+	chomp($line);
+	my $json = JSON->new->decode($line) or
+	    die "ERROR: Cannot parse JSON\n";
+	print $jsonpp->encode($json), "\n" or
+	    die "ERROR: Cannot print JSON\n";
+    }
+}

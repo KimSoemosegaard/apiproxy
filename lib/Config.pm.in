@@ -1,0 +1,120 @@
+##  ====================================================================
+##  lib/Config.pm - Configuration file handling
+##  ====================================================================
+
+package @Package@::Config;
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Config::Tiny;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+##  Defaults
+use constant CONFIG_SYS => "@prefix@/etc/@package@.conf";
+use constant CONFIG_USR => "$ENV{HOME}/.@package@.conf";
+
+
+##
+##  Create, initialize, and return a configuration object
+##
+##  @param @file	a list of additional configuiration files
+##  @return		configuration object
+##
+
+sub new
+{
+    my $class = shift;
+    my @files = @_;
+
+    # Construct object
+    my $self = { config => {} };
+    bless($self, $class);
+
+    # Load mandatory system configuration
+    $self->add(CONFIG_SYS) or
+	return undef;
+
+    # Load optional user configuration
+    -e CONFIG_USR && !$self->add(CONFIG_USR) and
+	return undef;
+
+    # Load additional configuration
+    $self->add(@files) or
+	return undef;
+
+    # Success
+    return $self;
+}
+
+
+##
+##  Load configuration files and merge with current configuration. New
+##  parameters take precedence over old parameters.
+##
+##  @param @files	configuration files to read and merge
+##  @return		configuration object
+##
+
+sub add {
+    my $self = shift; 
+    my @files = @_;
+
+    # Load all files
+    for my $file (@files) {
+	-e $file or
+	    return err(undef, "'${file}': File does not exist");
+	-f $file or
+	    return err(undef, "'${file}': Not a regular file");
+
+	# Load file
+	my $ct = Config::Tiny->read($file, 'utf8') or
+	    return err(undef, "'${file}': $Config::Tiny::errstr");
+
+	# Merge into configuration
+	for my $block (keys %$ct) {
+	    $self->{config}->{$block} = defined($self->{config}->{$block})
+		? { %{$self->{config}->{$block}}, %{$ct->{$block}} }
+	        : { %{$ct->{$block}} };
+	}
+    }
+
+    # Success
+    return $self;
+}
+
+
+##
+##  Get configuration parameters
+##
+##  @param $site	optional site to get parameters for
+##  @return		hash of parameters to use for $site
+##
+
+sub get
+{
+    my $self = shift;
+    my $site = shift || "_";
+
+    # Merge default block with site block in result
+    my $conf = {};
+    for my $block ("_", $site) {
+	if (ref($self->{config}->{$block}) eq "HASH") {
+	    $conf = { %$conf, %{$self->{config}->{$block}} };
+	}
+    }
+
+    # Success
+    return $conf;
+}
+
+
+__PACKAGE__;
+__END__

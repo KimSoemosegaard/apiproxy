@@ -1,0 +1,8 @@
+<form method="GET" action="/site/restcountries.eu/currency_code" id="currency_code">
+  <fieldset>
+    <legend>restcountries.eu / currency code</legend>
+    <label for="currency_code">Currency Code:</label>
+    <input type="text" id="currency_code" name="currency_code"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

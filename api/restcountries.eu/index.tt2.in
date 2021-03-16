@@ -1,0 +1,8 @@
+[% PROCESS header.inc %]
+<h2>restcountries.eu</h2>
+[% PROCESS site/restcountries.eu/capital.inc %]
+[% PROCESS site/restcountries.eu/country.inc %]
+[% PROCESS site/restcountries.eu/country_code.inc %]
+[% PROCESS site/restcountries.eu/currency_code.inc %]
+[% PROCESS site/restcountries.eu/language_code.inc %]
+[% PROCESS footer.inc %]

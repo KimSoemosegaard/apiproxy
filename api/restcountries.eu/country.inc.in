@@ -1,0 +1,8 @@
+<form method="GET" action="/site/restcountries.eu/country" id="country">
+  <fieldset>
+    <legend>restcountries.eu / country</legend>
+    <label for="country">Country:</label>
+    <input type="text" id="country" name="country"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

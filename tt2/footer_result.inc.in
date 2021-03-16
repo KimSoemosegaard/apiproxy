@@ -1,0 +1,36 @@
+  </table>
+  <div>
+    [% PROCESS print_button %]
+  </div>
+</div>
+
+<div id="json" class="tabcontent">
+  <table class="view-json">
+[% FOREACH row IN json_text %]
+    <tr><td>[% row %]</td></tr>
+[% END %]
+  </table>
+  <div>
+    [% PROCESS download_button href=json_data %]
+    [% PROCESS print_button %]
+  </div>
+</div>
+
+<div id="csv" class="tabcontent">
+  <table class="view-csv">
+[% FOREACH row IN csv %]
+    <tr><th>[% row.0 %]</th><td>[% row.1 %]</td></tr>
+[% END %]
+  </table>
+  <div>
+    [% PROCESS download_button href=csv_data %]
+    [% PROCESS print_button %]
+  </div>
+</div>
+
+<script>
+  //  Make text tab active initially
+  document.getElementById("text").style.display = "block";
+  document.getElementById("text").className += " active";
+</script>
+[% PROCESS footer.inc %]

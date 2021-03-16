@@ -1,0 +1,147 @@
+##  ====================================================================
+##  lib/JSON.pm - extend JSON functionality
+##  ====================================================================
+
+package @Package@::JSON;
+use parent qw(JSON);
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+
+##
+##  Construct and return an @Package@::JSON object.
+##
+##  @param @args	Arguments for the JSON constructor.
+##  @return 		An instantiated @Package@::JSON object.
+##
+
+sub new
+{
+    my $class = shift;
+    my @args = @_;
+    
+    #my $self = $class->SUPER->new(@args);
+    my $self = JSON->new(@args);
+    $self->allow_nonref;
+    $self->convert_blessed;
+    return $self;
+}
+
+
+##
+##  Convert a JSON hash into a list of key/value pairs.
+##
+##  @param $json	A JSON hash or array.
+##  @return		A list of key value pairs; undef on error.
+##
+
+sub json_to_list
+{
+    my $self = shift if ref($_[0]) eq __PACKAGE__;
+    my $json = shift;
+
+    ref($json) eq "HASH" || ref($json) eq "ARRAY" or
+	return err(undef, "Invalid JSON object");
+
+    my $list = [];
+    _json_to_list($list, undef, $json);
+    return $list;
+}
+
+
+sub _json_to_list
+{
+    my $list = shift;
+    my $key = shift;
+    my $val = shift;
+
+    # Undefined
+    if (!defined($val)) {
+	push(@$list, [ $key, "null" ]);
+    }
+
+    # Scalar
+    elsif (!ref($val)) {
+	push(@$list, [ $key, $val ]);
+    }
+
+    # Boolean
+    elsif (ref($val) eq "JSON::PP::Boolean" && $val == 1) {
+        push(@$list, [ $key, "true" ]);
+    }
+    elsif (ref($val) eq "JSON::PP::Boolean" && $val == 0) {
+        push(@$list, [ $key, "false" ]);
+    }
+
+    # Object
+    elsif (ref($val) eq "HASH") {
+        for my $k (sort { lc($a) cmp lc($b) } keys %$val) {
+            my $v = $val->{$k};
+            _json_to_list($list, length($key) ? "${key}.${k}" : $k, $v);
+        }
+    }
+
+    # Array
+    elsif (ref($val) eq "ARRAY") {
+        for my $i (0..$#{$val}) {
+            my $v = $val->[$i];
+            _json_to_list($list, length($key) ? "${key}.${i}" : $i, $v);
+        }
+    }
+
+    # Error
+    else {
+        return err(undef, "Unknown JSON type '" . ref($val) . "'");
+    }
+
+    # Success
+    return $list;
+}
+
+
+##
+##  Convert a JSON hash into an UTF-8 encoded string.
+##
+##  @param $json	A JSON hash or array.
+##  @return		An UTF-8 encoded string.
+##
+
+sub json_to_text
+{
+    my $self = shift if ref($_[0]) eq __PACKAGE__;
+    my $json = shift;
+
+    $self ||= new(__PACKAGE__);
+    my $text = $self->encode($json);
+    return $text;
+}
+
+
+##
+##  Convert an UTF-8 encoded string into a JSON hash or array.
+##
+##  @param $text	An UTF-8 encoded string.
+##  @return		A JSON hash or array.
+##
+
+sub text_to_json
+{
+    my $self = shift if ref($_[0]) eq __PACKAGE__;
+    my $text = shift;
+
+    $self ||= new(__PACKAGE__);
+    my $json = $self->decode($text);
+    return $json;
+}
+
+
+__PACKAGE__;
+__END__

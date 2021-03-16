@@ -1,0 +1,61 @@
+##  ====================================================================
+##  api/ipinfo.io/ipinfo_io.pm
+##  ====================================================================
+
+package @Package@::API::ipinfo_io;
+use parent qw(@Package@::API);
+my $site = "ipinfo.io";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use HTTP::Status qw(:constants);
+use URI::Encode qw(uri_encode);
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+
+##
+##  Lookup IP address information
+##
+##  @param \%params     query parameters
+##  @return		JSON hash of IP information
+##
+
+sub ip
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $ip = $params->{ip} || "";
+    $ip =~ m{^\d+\.\d+\.\d+\.\d+$} or
+	return err(undef, "Invalid IP address parameter");
+
+    # Use apikey if available and not searcing anonymously
+    my $apikey = $self->apikey;
+
+    # Setup url
+    my $ref = "https://${site}";
+    my $url = "https://${site}";
+    $url .= $apikey
+	? ("/${ip}?token=" . uri_encode($apikey))
+	: "/widget/${ip}";
+
+    # Referer required for anonymous search
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) or
+	return undef;
+    $code == HTTP_NOT_FOUND and
+	return err(undef, "No information available on '${ip}'");
+    return $json;
+}
+
+
+__PACKAGE__;
+__END__

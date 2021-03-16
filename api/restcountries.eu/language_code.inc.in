@@ -1,0 +1,8 @@
+<form method="GET" action="/site/restcountries.eu/language_code" id="language_code">
+  <fieldset>
+    <legend>restcountries.eu / language code</legend>
+    <label for="language_code">Language Code:</label>
+    <input type="text" id="language_code" name="language_code"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

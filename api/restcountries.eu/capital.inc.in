@@ -1,0 +1,8 @@
+<form method="GET" action="/site/restcountries.eu/capital" id="capital">
+  <fieldset>
+    <legend>restcountries.eu / capital</legend>
+    <label for="capital">Capital:</label>
+    <input type="text" id="capital" name="capital"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

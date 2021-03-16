@@ -1,0 +1,74 @@
+#!/usr/bin/env perl
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:utf8 :std);
+use utf8;
+
+##  Packages
+use HTML::PrettyPrinter;
+use HTML::TreeBuilder;
+use JavaScript::Beautifier qw(js_beautify); ;
+use JSON qw(decode_json);
+use LWP;
+use URI;
+
+##  Browser information
+my $useragent = "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:85.0)"
+    . " Gecko/20100101 Firefox/85.0";
+
+
+##  Main program
+{
+    # Environment
+    $0 =~ s(.*/)()g;
+
+    # Arguments
+    my $url = shift;
+    
+    # Browser
+    my $lwp = LWP::UserAgent->new;
+    $lwp->agent($useragent);
+
+    # Get url
+    my $res = $lwp->get($url);
+    die "ERROR: " . $res->status_line . "\n" unless
+	$res->is_success;
+    die "ERROR: " . $res->content_type . "\n" unless
+	$res->content_type =~ m(html)i;
+
+    # Parse content
+    my $html = HTML::TreeBuilder->new_from_content($res->decoded_content);
+
+    # Cleanup malformed end tags
+    for my $node ($html->look_down("/" => "/")) {
+	$node->attr("/", undef);
+    }
+
+    # Pretty print javascript
+    if (1) {
+	for my $script ($html->look_down("_tag" => "script")) {
+	    $script->attr("src") and next;
+	    $script->normalize_content;
+
+	    my $content = join("\n", @{$script->content});
+	    my $javascript = js_beautify($content);
+	
+	    $script->delete_content();
+	    $script->splice_content(0, 0, "\n" . $javascript . "\n");
+	}
+    }
+
+    # Pretty print html
+    if (1) {
+	my $hpp = HTML::PrettyPrinter->new(
+	    allow_forced_nl => 1,
+	    min_bool_attr => 1,
+	    quote_attr => 1,
+	    uppercase => 0);
+	$hpp->set_nl_after(1,'br');
+	print @{$hpp->format($html)};
+    }
+}

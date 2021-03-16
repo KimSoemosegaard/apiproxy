@@ -1,0 +1,52 @@
+##  ====================================================================
+##  lib/Err.pm - Error handling
+##  ====================================================================
+
+package @Package@::Err;
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Export error handling function
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT = qw(err);
+
+
+##  Latest error message - not cleared by any module functions
+our $err = "";
+
+
+##
+##  Set/get error message. When called with a value and a message it
+##  stores the message for later and returns the value. When called
+##  without arguments it returns the previously stored message.
+##
+##  @param $val         value to return;
+##  @param @str         error message
+##  @return             the value $val
+##
+
+sub err
+{
+    # Setter
+    if (@_) {
+	my $val = shift;
+	my @err = @_;
+
+	$err = join("", @err);
+	return $val;
+    }
+
+    # Getter
+    else {
+	return $err;
+    }
+}
+
+
+__PACKAGE__;
+__END__

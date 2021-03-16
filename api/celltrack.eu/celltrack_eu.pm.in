@@ -1,0 +1,80 @@
+##  ====================================================================
+##  api/celltrack.eu/celltrack_eu.pm
+##  ====================================================================
+
+package @Package@::API::celltrack_eu;
+use parent qw(@Package@::API);
+my $site = "celltrack.eu";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use HTTP::Status qw(:constants);
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::Utils;
+
+
+##
+##  Lookup IMEI information
+##
+##  @param \%params     query parameters
+##  @return		JSON hash of IP information
+##
+
+sub imei
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    # Fetch imei parameter
+    my $imei = $params->{imei} || "";
+    $imei =~ m{^[0-9]{8,16}$} or
+	return err(undef, "Invalid IMEI parameter");
+
+    # Normalize imei
+    $imei .= sprintf("%06d", int(rand(1000000)));
+    $imei = substr($imei, 0, 14);
+    $imei .= sprintf("%d", imei_checkdigit($imei));
+
+    # Fetch html
+    my $url = "https://www.${site}/tools/imei-check/${imei}";
+    my $ref = "https://www.${site}/";
+    my ($html, $code, $type) = $self->get_html($url, [ Referer => $ref ]);
+    defined($code) or
+	return undef;
+    $code == HTTP_NOT_FOUND and
+	return err(undef, "No information available for this IMEI");
+    200 <= $code && $code <= 299 or
+	return undef;
+
+    # Parse html
+    my $json = {};
+    for my $table ($html->look_down("_tag" => "table")) {
+        for my $tr ($table->look_down("_tag" => "tr")) {
+            my @td = $tr->look_down("_tag" => "td") or next;
+            $#td == 1 or next;
+
+            my $key = lc(str2name($td[0]->as_text));
+            my $val = str2str($td[1]->as_text);
+            $json->{$key} = $val;
+        }
+    }
+    if ($json->{supported_frequencies}) {
+	$json->{supported_frequencies} = [
+	    split(/\s*,\s*/, $json->{supported_frequencies}) ];
+    }
+
+    # Success
+    return $json;
+}
+
+
+__PACKAGE__;
+__END__

@@ -1,0 +1,78 @@
+[% PROCESS header_result.inc %]
+<tr><th colspan="2"> Identification </th></tr>
+<tr><td> Country Code (ISO 3366-1 Alpha-2) </td><td>[% json.alpha2Code %]</td></tr>
+<tr><td> Country Code (ISO 3366-1 Alpha-3) </td><td>[% json.alpha3Code %]</td></tr>
+<tr><td> Country Code (ISO 3366-1 Numeric) </td><td>[% json.numericCode %]</td></tr>
+<tr><td> Country Code (CIOC) </td><td>[% json.cioc %]</td></tr>
+
+<tr><th colspan="2"> Name </th></tr>
+<tr><td> Name </td><td>[% json.name %]</td></tr>
+<tr><td> Native Name </td><td>[% json.nativeName %]</td></tr>
+[% FOREACH altSpelling IN json.altSpellings %]
+<tr><td> Alternate Name </td><td>[% altSpelling %]</td></tr>
+[% END %]
+<tr><td> Name in brazilian </td><td>[% json.translations.br %]</td></tr>
+<tr><td> Name in dutch </td><td>[% json.translations.nl %]</td></tr>
+<tr><td> Name in farsi </td><td>[% json.translations.fa %]</td></tr>
+<tr><td> Name in french </td><td>[% json.translations.fr %]</td></tr>
+<tr><td> Name in german </td><td>[% json.translations.de %]</td></tr>
+<tr><td> Name in hungarian </td><td>[% json.translations.hr %]</td></tr>
+<tr><td> Name in italian </td><td>[% json.translations.it %]</td></tr>
+<tr><td> Name in japanese </td><td>[% json.translations.ja %]</td></tr>
+<tr><td> Name in portuguese </td><td>[% json.translations.pt %]</td></tr>
+<tr><td> Name in spanish </td><td>[% json.translations.es %]</td></tr>
+
+<tr><th colspan="2"> Region </th></tr>
+<tr><td> Subregion </td><td>[% json.subregion %]</td></tr>
+<tr><td> Region </td><td>[% json.region %]</td></tr>
+[% FOREACH regionalBloc IN json.regionalBlocs %]
+<tr><td> Regional Bloc </td><td>[% regionalBloc.name %]</td></tr>
+[%  FOREACH otherName IN regionalBloc.otherName %]
+<tr><td> Regional Bloc Alternate Name </td><td>[% otherName %]</td></tr>
+[%  END %]
+<tr><td> Regional Bloc Acronym </td><td>[% regionalBloc.acronym %]</td></tr>
+[%  FOREACH otherAcronym IN regionalBloc.otherAcronyms %]
+<tr><td> Regional Bloc Alternate Acronym </td><td>[% otherAcronym %]</td></tr>
+[%  END %]
+[% END %]
+
+<tr><th colspan="2"> Geography </th></tr>
+<tr><td> Capital </td><td>[% json.capital %]</td></tr>
+<tr><td> Latitude </td><td>[% json.latlng.0 %]</td></tr>
+<tr><td> Longitude </td><td>[% json.latlng.1 %]</td></tr>
+<tr><td> Area (km<sup>2</sup>) </td><td>[% json.area %]</td></tr>
+[% FOREACH border IN json.borders %]
+<tr><td> Border </td><td>[% border %]</td></tr>
+[% END %]
+[% FOREACH timezone IN json.timezones %]
+<tr><td> Time Zone </td><td>[% timezone %]</td></tr>
+[%  END %]
+
+<tr><th colspan="2"> Population </th></tr>
+<tr><td> Population </td><td>[% json.population %]</td></tr>
+<tr><td> Demonym </td><td>[% json.demonym %]</td></tr>
+<tr><td> Flag </td><td>[% json.flag %]</td></tr>
+[% FOREACH language IN json.languages %]
+<tr><td> Language </td><td>[% language.name %]</td></tr>
+<tr><td> Language in native language </td><td>[% language.nativeName %]</td></tr>
+<tr><td> Language Code (ISO 639-1) </td><td>[% language.iso639_1 %]</td></tr>
+<tr><td> Language Code (ISO 639-2) </td><td>[% language.iso639_2 %]</td></tr>
+[% END %]
+
+<tr><th colspan="2"> Economy </th></tr>
+<tr><td> GINI Index </td><td>[% json.gini %]</td></tr>
+[% FOREACH currency IN json.currencies %]
+<tr><td> Currency </td><td>[% currency.name %]</td></tr>
+<tr><td> Currency Code </td><td>[% currency.code %]</td></tr>
+<tr><td> Currency Symbol </td><td>[% currency.symbol %]</td></tr>
+[% END %]
+
+<tr><th colspan="2"> Technology </th></tr>
+[% FOREACH callingCode IN json.callingCodes %]
+<tr><td> International Dialing Code </td><td>[% callingCode %]</td></tr>
+[% END %]
+[% FOREACH topLevelDomain IN json.topLevelDomain %]
+<tr><td> Top Level Domain (TLD) </td><td>[% topLevelDomain %]</td></tr>
+[% END %]
+
+[% PROCESS footer_result.inc %]

@@ -1,0 +1,44 @@
+[% PROCESS header_result.inc %]
+
+<tr><td> IP address </td><td>[% json.ip %]</td></tr>
+<tr><td> Hostname </td><td>[% json.hostname %]</td></tr>
+
+<tr><th colspan="2"> Location </th></tr>
+<tr><td> Latitude / longitude </td><td>[% json.loc %]</td></tr>
+<tr><td> City </td><td>[% json.city %]</td></tr>
+<tr><td> Region </td><td>[% json.region %]</td></tr>
+<tr><td> Country </td><td>[% json.country %]</td></tr>
+<tr><td> Timezone </td><td>[% json.timezone %]</td></tr>
+
+<tr><th colspan="2"> ASN </th></tr>
+<tr><td> ASN </td><td>[% json.asn.asn %]</td></tr>
+<tr><td> ASN name </td><td>[% json.asn.name %]</td></tr>
+<tr><td> ASN domain </td><td>[% json.asn.domain %]</td></tr>
+<tr><td> ASN route </td><td>[% json.asn.route %]</td></tr>
+<tr><td> ASN type </td><td>[% json.asn.type %]</td></tr>
+
+<tr><th colspan="2"> Company </th></tr>
+<tr><td> Company name </td><td>[% json.company.name %]</td></tr>
+<tr><td> Company type </td><td>[% json.company.type %]</td></tr>
+<tr><td> Company domain </td><td>[% json.company.domain %]</td></tr>
+
+<tr><th colspan="2"> Abuse </th></tr>
+<tr><td> Abuse address </td><td>[% json.abuse.address %]</td></tr>
+<tr><td> Abuse country </td><td>[% json.abuse.country %]</td></tr>
+<tr><td> Abuse email </td><td>[% json.abuse.email %]</td></tr>
+<tr><td> Abuse name </td><td>[% json.abuse.name %]</td></tr>
+<tr><td> Abuse network </td><td>[% json.abuse.network %]</td></tr>
+<tr><td> Abuse phone </td><td>[% json.abuse.phone %]</td></tr>
+
+<tr><th colspan="2"> Privacy </th></tr>
+<tr><td> Is hosting provider? </td><td>[% json.privacy.hosting %]</td></tr>
+<tr><td> Is proxy provider? </td><td>[% json.privacy.proxy %]</td></tr>
+<tr><td> Is Tor node? </td><td>[% json.privacy.tor %]</td></tr>
+<tr><td> Is VPN provider? </td><td>[% json.privacy.vpn %]</td></tr>
+
+<tr><th colspan="2"> Uncategorized </th></tr>
+<tr><td> domains.total </td><td>[% json.domains.total %]</td></tr>
+<tr><td> org </td><td>[% json.org %]</td></tr>
+<tr><td> postal </td><td>[% json.postal %]</td></tr>
+
+[% PROCESS footer_result.inc %]

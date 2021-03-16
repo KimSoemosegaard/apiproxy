@@ -1,0 +1,12 @@
+[% PROCESS header.inc -%]
+
+<h2>API by Type</h2>
+<ul>
+  <li><a href="/type/capital">Capital Name</a></li>
+  <li><a href="/type/country_code">Country Code</a></li>
+  <li><a href="/type/country">Country Name</a></li>
+  <li><a href="/type/currency_code">Currency Code</a></li>
+  <li><a href="/type/language_code">Language Code</a></li>
+</ul>
+
+[% INCLUDE footer.inc -%]

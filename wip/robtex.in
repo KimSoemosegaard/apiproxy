@@ -1,0 +1,71 @@
+#!/usr/bin/env perl
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:utf8 :std);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+use HTML::PrettyPrinter;
+use HTML::TreeBuilder;
+use HTTP::Cookies;
+use JSON qw(decode_json);
+use LWP;
+use URI;
+
+##  Browser information
+my $useragent = "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:85.0)"
+    . " Gecko/20100101 Firefox/85.0";
+
+my $username = "khs\@ber-it.dk";
+my $password = "F00BarGA";
+
+
+##  Main program
+{
+    # Environment
+    $0 =~ s(.*/)()g;
+
+    # IP address
+    my $ip = shift(@ARGV);
+
+    # Browser
+    my $lwp = LWP::UserAgent->new;
+    $lwp->agent($useragent);
+    $lwp->cookie_jar(
+	HTTP::Cookies->new(
+	    file => "lwp_cookies.dat",
+	    autosave => 1));
+	
+    my $json = robtex_ipquery($lwp, $ip);
+
+	print JSON->new->pretty->encode($json);
+}
+
+
+sub robtex_ipquery
+{
+    my $lwp = shift;
+    my $ip = shift;
+
+    # URL
+    my $url = "https://freeapi.robtex.com/ipquery/${ip}";
+
+    # Fetch
+    my $res = $lwp->get($url);
+    die "ERROR: " . $res->status_line . "\n" unless
+	$res->is_success;
+    die "ERROR: " . $res->content_type . "\n" unless
+	$res->content_type =~ m(json)i;
+
+    # Parse
+    my $json = JSON->new->decode($res->decoded_content);
+    die "ERROR: JSON" unless
+	$json;
+
+return $json;
+}
+

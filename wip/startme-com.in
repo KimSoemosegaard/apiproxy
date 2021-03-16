@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+use Data::Dumper;
+use Encode;
+use LWP;
+use JSON -convert_blessed_universally;
+
+my $site = "startme.com";
+my $base = "https://start.me";
+
+
+my $useragent = "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:85.0)"
+    . " Gecko/20100101 Firefox/85.0";
+
+
+{
+    my $lwp = LWP::UserAgent->new;
+    $lwp->agent($useragent);
+    $lwp->cookie_jar({});
+
+    my $url = "https://start.me/p/L1xpKl/home";
+    my $pageid = "L1xpKl";
+    $pageid = "ZME8nR";
+
+    my $hash = startme_profile($lwp, $pageid);
+    print Dumper("DUMP: ", $hash), "\n\n";
+
+    print "JOSN: ";
+    print JSON->new->utf8->allow_nonref->convert_blessed->pretty->encode($hash);
+}
+
+
+sub startme_profile
+{
+    my $lwp = shift;
+    my $pageid = shift;
+
+    # Setup
+    my $url = "${base}/p/${pageid}.json";
+
+    # Fetch
+    my $res = $lwp->get($url);
+    die "ERROR: " . $res->status_line . "\n" unless
+        $res->is_success;
+    die "ERROR: " . $res->content_type . "\n" unless
+        $res->content_type =~ m(json);
+
+#    print "RAW: ", $res->content, "\n\n";
+
+    # Parse
+    my $text = $res->decoded_content or
+	die "ERROR: TEXT";
+
+#    $text = Encode::encode_utf8($text);
+    print "TEXT: ", $text, "\n\n";
+    
+    my $json = JSON->new->utf8->decode($text) or
+	die "ERROR: JSON";
+    return $json;
+}
+
+__END__
+
+
+GET https://start.me/p/L1xpKl.json
+  => profile information
+
+z4L2DO

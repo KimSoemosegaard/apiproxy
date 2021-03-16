@@ -1,0 +1,137 @@
+##  ====================================================================
+##  lib/@Package@/API/restcountries_eu.pm
+##  ====================================================================
+
+package @Package@::API::restcountries_eu;
+use parent qw(@Package@::API);
+my $site = "restcountries.eu";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use URI::Encode qw(uri_encode);	# space = %20
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+
+##
+##  Lookup country identified by the (partial) name of its capital.
+##
+##  @param \%query	query containing (partial) capital name
+##  @return		list of hashes of country information
+##
+
+sub capital
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $capital = $params->{capital} || "";
+    $capital =~ m{[A-Za-z]} or
+	return err(undef, "Invalid capital: '${capital}'");
+
+    my $url = "https://${site}/rest/v2/capital"
+	. "/" . uri_encode($capital);
+    return $self->get_json($url);
+}
+
+
+##
+##  Lookup country identified by its (partial) name.
+##
+##  @param \%query	query containing (partial) country name
+##  @return		list of hashes of country information
+##
+
+sub country
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    print STDERR "COUNTRY PAR:", Dumper($params);
+    my $country = $params->{country} || "";
+    $country =~ m{[A-Za-z]} or
+	return err(undef, "Invalid country: '${country}'");
+
+    my $url = "https://${site}/rest/v2/name"
+	. "/" . uri_encode($country);
+    return $self->get_json($url);
+}
+
+
+##
+##  Lookup country identified by its ISO 3166-1 2- or 3-letter code.
+##
+##  @param \%query	query containing ISO 3166-1 2- or 3-letter code
+##  @return		hash of country information
+##
+
+sub country_code
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $country_code = $params->{country_code} || "";
+    $country_code =~ m{^[A-Za-z]{2,3}$} or
+	return err(undef, "Invalid country code: '${country_code}'");
+
+    my $url = "https://${site}/rest/v2/alpha"
+	. "/" . uri_encode($country_code);
+    return $self->get_json($url);
+}
+
+
+##
+##  Lookup countries identified by their ISO 4217 currency code.
+##
+##  @param \%query	query containing ISO 4217 currency code
+##  @return		list of hashes of country information
+##
+
+sub currency_code
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $currency_code = $params->{currency_code} || "";
+    $currency_code =~ m{^[A-Za-z]{2,3}$} or
+	return err(undef, "Invalid currency code: '${currency_code}'");
+
+    my $url = "https://${site}/rest/v2/currency"
+	. "/" . uri_encode($currency_code);
+    return $self->get_json($url);
+}
+
+
+##
+##  Lookup countries identified by their ISO 639 2- or 3-letter
+##  language code.
+##
+##  @param \%query	query containing ISO 639 language code
+##  @return		list of hashes of country information
+##
+
+sub language_code
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $language_code = $params->{language_code} || "";
+    $language_code =~ m{^[A-Za-z]{2,3}$} or
+	return err(undef, "Invalid language code: '${language_code}'");
+
+    my $url = "https://${site}/rest/v2/lang"
+	. "/" . uri_encode($language_code);
+    return $self->get_json($url);
+}
+
+
+__PACKAGE__;
+__END__

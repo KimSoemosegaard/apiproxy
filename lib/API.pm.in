@@ -1,0 +1,166 @@
+##  ====================================================================
+##  lib/API.pm - API base class
+##  ====================================================================
+
+package @Package@::API;
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+##  Identification, options, and help
+use constant SITE => "UNDEFINED";
+use constant OPTIONS => [];
+use constant USAGE => "";
+
+
+##
+##  Create and return a new API object.  The object includes an LWP
+##  object that is used for accessing the site.
+##
+##  @return		API object
+##
+
+sub new
+{
+    my $class = shift;
+    my @args = @_;
+
+    # new()
+    if ($#args < 0) {
+	my $site = $class->SITE or
+	    return err(undef, "Cannot determine SITE for API");
+	my $conf = @Package@::Config->new({ site => $site }) or
+	    return undef;
+	my $lwp = @Package@::LWP->new($conf) or
+	    return undef;
+	my $self = { site => $site, lwp => $lwp };
+	return bless($self, $class);
+    }
+
+    # new($site)
+    if ($#args == 0 && !ref($args[0]) && $args[0] =~ m{\w+\.\w+}) {
+	my $site = lc($args[0]);
+	my $conf = @Package@::Config->new({ site => $site }) or
+	    return undef;
+	my $lwp = @Package@::LWP->new($conf) or
+	    return undef;
+	my $self = { site => $site, lwp => $lwp };
+	return bless($self, $class);
+    }
+
+    # new($lwp)
+    if ($#args == 0 && ref($args[0]) eq "@Package@::LWP") {
+	my $site = $class->SITE or
+	    return err(undef, "Cannot determine SITE for API");
+	my $lwp = $args[0];
+	my $self = { site => $site, lwp => $lwp };
+	return bless($self, $class);
+    }
+
+    # XXX
+    die "ERROR: @Package@::API::new - cannot construct object\n";
+}
+
+
+##
+##  Check and unpack argument list
+##
+##  @param $min		required minimum number of arguments
+##  @param $max		required maximum number of arguments
+##  @param @args	argument list including self and options
+##  @return		tuple of self, options, and arguments
+##
+
+sub params
+{
+    my $min = shift;
+    my $max = shift;
+
+    # Unpack argument list
+    my $self = shift;
+    my $opts = ref($_[0]) eq "HASH" ? shift : {};
+    my @args = @_;
+
+    # Check number of arguments
+    $min <= $#args + 1 or do {
+	err(undef, "Function called with too few parameters");
+	return ();
+    };
+    $max < $min || $#args + 1 <= $max or do {
+	err(undef, "Function called with too many parameters");
+	return ();
+    };
+
+    # Success
+    return ($self, $opts, @args);
+}
+
+
+##  Wrappers
+sub get
+{
+    my $self = shift;
+    $self->{lwp}->get(@_);
+}
+
+
+sub get_html
+{
+    my $self = shift;
+    $self->{lwp}->get_html(@_);
+}
+
+
+sub get_json
+{
+    my $self = shift;
+    $self->{lwp}->get_json(@_);
+}
+
+
+sub get_text
+{
+    my $self = shift;
+    $self->{lwp}->get_text(@_);
+}
+
+
+sub apikey
+{
+    my $self = shift;
+    $self->{lwp}->apikey(@_);
+}
+
+
+sub password
+{
+    my $self = shift;
+    $self->{lwp}->password(@_);
+}
+
+
+sub username
+{
+    my $self = shift;
+    $self->{lwp}->username(@_);
+}
+
+
+sub verbose
+{
+    my $self = shift;
+    $self->{lwp}->verbose(@_);
+}
+
+
+__PACKAGE__;
+__END__

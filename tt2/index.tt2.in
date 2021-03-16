@@ -1,0 +1,8 @@
+[% PROCESS header.inc -%]
+
+<ul>
+  <li><a href="/site">API by site</a></li>
+  <li><a href="/type">API by type</a></li>
+</ul>
+
+[% INCLUDE footer.inc -%]

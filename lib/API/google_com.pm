@@ -1,0 +1,54 @@
+##  ====================================================================
+##  lib/APIProxy/API/google_com.pm
+##  ====================================================================
+
+package APIProxy::API::google_com;
+use parent qw(APIProxy::API);
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use URI::Encode qw(uri_encode);
+
+##  Local packages
+use lib '/opt/apiproxy/lib';
+use APIProxy::Err;
+
+##  Target
+use constant SITE => "google.com";
+my $site = SITE;
+
+
+##
+##  Get IP address we're currently using
+##
+##  @return		hashes of IP information
+##
+
+sub search
+{
+    my ($self, $opts, @args) = APIProxy::API::params(1, -1, @_) or
+	return undef;
+
+    my $q = join(" ", @args);
+#    my $key = $self->{lwp}->{apikey};
+    my $key = "AIzaSyB6KNIjwVg8fyyapWjzEq2tEVvKmifbxlM";
+    
+    my $url = "https://www.googleapis.com/customsearch/v1"
+	. "?key=" . uri_encode($key)
+#	. "&cx=" . ""
+	. "&q=" . uri_encode($q);
+
+    print STDERR "URL $url\n";
+#    exit 0;
+
+    return $self->get_json($url);
+}
+
+
+__PACKAGE__;
+__END__

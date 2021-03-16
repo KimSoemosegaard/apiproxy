@@ -1,0 +1,38 @@
+##  ====================================================================
+##  lib/@Package@/API/jsonip_com.pm
+##  ====================================================================
+
+package @Package@::API::jsonip_com;
+use parent qw(@Package@::API);
+my $site = "jsonip.com";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+
+
+##
+##  Get IP address we're currently using
+##
+##  @param \%params     query parameters - unused
+##  @return		JSON with IP information
+##
+
+sub get
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $url = "https://${site}";
+    return $self->get_json($url);
+}
+
+
+__PACKAGE__;
+__END__

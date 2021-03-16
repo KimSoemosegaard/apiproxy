@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@Package@</title>
+  <link rel="icon" type="image/svg" href="/file/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="/file/style.css">
+  <link rel="stylesheet" type="text/css" href="/file/font/gilroy.css">
+  <link rel="stylesheet" type="text/css" href="/file/font/awesome.css">
+  <script type="application/javascript" src="/file/script.js"></script>
+</head>
+<body>
+  <header>
+    <h1><a href="/">@Package@</a></h1>
+  </header>
+  <main>
+
+[% BLOCK download_button %]
+  <button type="button" value="Download">
+    <a href="[% href %]">
+      <i class="fa fa-file-download"></i>
+    </a>
+  </button>
+[% END %]
+
+[% BLOCK print_button %]
+  <button type="button" value="Print" onclick="window.print()">
+    <i class="fa fa-print"></i>
+  </button>
+[% END %]
+
+[% BLOCK submit_button %]
+  <button type="submit" value="Submit">
+    <i class="fa fa-arrow-alt-circle-right"></i>
+  </button>
+[% END %]
+

@@ -1,0 +1,132 @@
+#!/usr/bin/env perl
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:utf8 :std);
+use utf8;
+
+##  Packages
+use JSON qw(decode_json);
+use HTML::TreeBuilder;
+use LWP;
+use URI;
+
+##  Browser information
+my $useragent = "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:85.0)"
+    . " Gecko/20100101 Firefox/85.0";
+
+
+##  Main program
+{
+    # Environment
+    $0 =~ s(.*/)()g;
+
+    # Browser
+    my $lwp = LWP::UserAgent->new;
+    $lwp->agent($useragent);
+
+    # Process urls
+    my $json = [];
+    for my $url (@ARGV) {
+	my $item = urlinfo($lwp, $url);
+	push(@$json, $item);
+    }
+
+    # Print result
+    if (@$json == 1) {
+	print JSON->new->pretty->encode($json->[0]);
+    }
+    elsif (@$json > 1) {
+	print JSON->new->pretty->encode($json);
+    }
+    else {
+	print STDERR "Usage: $0 URL...\n";
+    }
+}
+
+
+sub urlinfo
+{
+    my $lwp = shift;
+    my $url = shift;
+    my $json = { url => $url };
+
+    # Get url
+    my $res = $lwp->get($url);
+    unless ($res->is_success) {
+	$json->{":error"} = $res->status_line;
+	return $json;
+    }
+    unless ($res->content_type =~ m(html)i) {
+	$json->{":error"} = "Unexpected content type $res->content_type";
+	return $json;
+    }
+
+    # Parse content
+    my $html = HTML::TreeBuilder->new_from_content($res->decoded_content);
+    # XXX Error?
+
+    # Extract title
+    if (1) {
+	my $title = $html->look_down("_tag" => "title");
+	if ($title) {
+	    $json->{title} = $title->as_trimmed_text;
+	}
+    }
+
+    # Extract metadata
+    if (1) {
+	for my $meta ($html->look_down("_tag", "meta")) {
+	    my %attrs = $meta->all_attr or next;
+	    my $item = {};
+	    for my $attr (keys %attrs) {
+		$attr =~ m(^_) and next;
+		$attr =~ m(^/$) and next;
+		$item->{$attr} = $attrs{$attr};
+	    }
+	    $json->{meta} ||= [];
+	    push(@{$json->{meta}}, $item);
+	}
+    }
+
+    # Extract scripts
+    if (1) {
+	my $script_src = {};
+	for my $script ($html->look_down("_tag" => "script")) {
+	    my $src = $script->attr("src") or next;
+	    $src = URI->new($src)->abs($url) or next;
+	    $script_src->{$src} = 1;
+	}
+
+	$json->{script} = [ keys %$script_src ] if keys %$script_src;
+    }
+    
+    # Extract images
+    if (1) {
+	my $img_src = {};
+	for my $img ($html->look_down("_tag" => "img")) {
+	    my $src = $img->attr("src") or next;
+	    $src = URI->new($src)->abs($url) or next;
+	    $img_src->{$src} = 1;
+	}
+
+	$json->{img} = [ keys %$img_src ] if keys %$img_src;
+    }
+
+    # Extract links
+    if (1) {
+	my $a_href = {};
+	for my $a ($html->look_down("_tag" => "a")) {
+	    my $href = $a->attr("href") or next;
+	    $href = URI->new($href)->abs($url) or next;
+	    $a_href->{$href} = 1;
+	}
+
+	$json->{a} = [ keys %$a_href ] if keys %$a_href;
+    }
+
+    # Success
+    return $json;
+}

@@ -1,0 +1,6 @@
+[% PROCESS header.inc -%]
+
+<h2>Error: [% status %] [% message %] </h2>
+<p>[% details %]</p>
+
+[% INCLUDE footer.inc -%]

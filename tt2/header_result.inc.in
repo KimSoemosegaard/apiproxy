@@ -1,0 +1,11 @@
+[% PROCESS header.inc %]
+
+<h2><a href="/site/[%site%]">[% site %]</a> / [%func%]</h2>
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'text')">Text</button>
+  <button class="tablinks" onclick="openTab(event, 'json')">JSON</button>
+  <button class="tablinks" onclick="openTab(event, 'csv')">CSV</button>
+</div>
+
+<div id="text" class="tabcontent">
+  <table class="view-text">

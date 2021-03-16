@@ -1,0 +1,86 @@
+#!/usr/bin/env perl
+##  ====================================================================
+##  closint/bin/jsonkv - JSON key/value printer
+##  ====================================================================
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use JSON -convert_blessed_universally;
+
+
+##  Main program
+{
+    while (my $line = <STDIN>) {
+	chomp($line);
+	my $json = JSON->new->decode($line) or
+	    die "ERROR: Cannot parse JSON\n";
+	my $kv = jsonkv($json) or
+	    die "ERROR: Cannot convert JSON\n";
+	for (my $i = 0; defined($kv->[$i]); $i++) {
+	    print $kv->[$i]->[0], ": ", $kv->[$i]->[1], "\n";
+	}
+    }
+}
+
+
+##  Convert JSON structure to key/value list
+sub jsonkv
+{
+    my $json = shift;
+    my $kv = [];
+
+    _jsonkv($kv, undef, $json);
+    return $kv;
+}
+
+
+sub _jsonkv
+{
+    my $kv = shift;
+    my $key = shift;
+    my $val = shift;
+
+    # Null
+    if (!defined($val)) {
+	push(@$kv, [ $key, "null" ]);
+    }
+
+    # Scalar
+    elsif (!ref($val)) {
+	push(@$kv, [ $key, $val ]);
+    }
+
+    # Boolean
+    elsif (ref($val) eq "JSON::PP::Boolean" && $val == 1) {
+	push(@$kv, [ $key, "true" ]);
+    }
+    elsif (ref($val) eq "JSON::PP::Boolean" && $val == 0) {
+	push(@$kv, [ $key, "false" ]);
+    }
+
+    # Object
+    elsif (ref($val) eq "HASH") {
+	for my $k (sort { lc($a) cmp lc($b) } keys %$val) {
+	    my $v = $val->{$k};
+	    _jsonkv($kv, defined($key) ? "${key}.${k}" : "${k}", $v);
+	}
+    }
+
+    # Array
+    elsif (ref($val) eq "ARRAY") {
+	for my $i (0..$#{$val}) {
+	    my $v = $val->[$i];
+	    _jsonkv($kv, length($key) ? "${key}.${i}" : "${i}", $v);
+	}
+    }
+
+    # Error
+    else {
+	warn "Error: Unknown JSON type '" . ref($val) . "'\n";
+    }
+}

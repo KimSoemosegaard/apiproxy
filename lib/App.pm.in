@@ -1,0 +1,497 @@
+#r  ====================================================================
+##  lib/App.pm
+##  ====================================================================
+
+package @Package@::App;
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+use Getopt::Long qw(GetOptionsFromArray);
+use HTTP::Status qw(:constants);
+use MIME::Base64;
+use MIME::Types;
+use Module::Load;
+use Module::Loaded;
+use Plack::Request;
+use Template;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Config;
+use @Package@::Err;
+use @Package@::JSON;
+use @Package@::LWP;
+
+##  Directories
+use constant RAWDIR => "@prefix@/raw";
+use constant TT2DIR => "@prefix@/tt2";
+
+##  Option definitions
+use constant OPTIONS => [
+    "anonymous|a",
+    "burp|b",
+    "config|c=s",
+    "help|h|?",
+    "proxy|p=s",
+    "referer|r=s",
+    "timeout|w=i",
+    "tor|t",
+    "useragent|u=s",
+    "verbose|v+",
+];
+
+##  Usage information
+use constant USAGE => <<EndOfUsage;
+Options are:
+    -a, --anonymous             access site without logging in
+    -b, --burp                  prixy request via BurpSuite
+    -c, --config=FILE           read configuration from FILE
+    -h, --help                  print this message
+    -p, --proxy=URL             proxy request via URL
+    -r, --referer=URL           set referer to URL on request
+    -w, --timeout=NUMBER        set connect/request timeout to NUMBER seconds
+    -t, --tor                   proxy request via Tor
+    -u, --useragent=STRING      set user agent to STRING
+    -v, --verbose               log operations
+EndOfUsage
+;
+
+##  Common content types
+use constant CT_HTML => [ "Content-Type" => "text/html; charset=utf-8" ];
+use constant CT_JSON => [ "Content-Type" => "application/json" ];
+use constant CT_TEXT => [ "Content-Type" => "text/plain; charset=utf-8" ];
+
+##  Global state
+my $app = {
+    conf => {},			# Configuration object
+    opts => {},			# Parameters set from command line
+    temp => {},			# Template object
+};
+
+
+##
+##  Configure app.
+##
+##  @param @argv	command line options and arguments
+##  @return		a Plack request handler
+##
+
+sub new
+{
+    my $class = shift;
+    my @argv = @_;
+
+    # Parse options
+    my $opts = {};
+    Getopt::Long::Configure("bundling");
+    Getopt::Long::Configure("no_auto_abbrev");
+    GetOptionsFromArray(\@argv, $opts, @{&OPTIONS}) && !@argv or
+	usage(1);
+
+    # Handle request for help
+    if ($opts->{help}) {
+	usage(0);
+    }
+
+    # Setup options
+    for my $opt (qw(anonymous burp proxy referer timeout tor)) {
+	if (defined($opts->{$opt}) && $opts->{$opt}) {
+	    $app->{opts}->{$opt} = $opts->{$opt};
+	}
+    }
+    if (defined($opts->{useragent}) && $opts->{useragent}) {
+	$app->{opts}->{agent} = $opts->{useragent};
+    }
+    
+    # Setup configuration
+    $app->{conf} = @Package@::Config->new() or
+	die "ERROR: $@Package@::Err::err\n";
+    if (defined($opts->{config}) && ref($opts->{config}) eq "ARRAY") {
+	$app->{conf}->add(@{$opts->{config}}) or
+	    die "ERROR: $@Package@::Err::err\n";
+    }
+    if (defined($opts->{config}) && !ref($opts->{config})) {
+	$app->{conf}->add($opts->{config}) or
+	    die "ERROR: $@Package@::Err::err\n";
+    }
+
+    # Setup template
+    $app->{temp} = Template->new({ INCLUDE_PATH => [ TT2DIR ] }) or
+	die "ERROR: $Template::ERROR\n";
+    
+    # Success
+    return \&app;
+}
+
+
+##
+##  Print usage information and quit.
+##
+##  @param $status	the exit status to return to the shell
+##  @return		never returns to the caller
+##
+
+sub usage
+{
+    my $status = shift || 0;
+
+    # Setup program name
+    my $program = $0;
+    $program =~ s{.*/}{};
+
+    # Print usage information
+    print "Usage: ${program} [OPTION]...\n\n";
+    print USAGE, "\n";
+
+    # Quit
+    exit($status);
+}
+
+
+##
+##  Create an HTML page with error information.
+##
+##  @param $status	HTTP status code
+##  @param @details	additional error details
+##  @return		a Plack response
+##
+
+sub error
+{
+    my $status = shift || HTTP_OK;
+    my $details = join("", @_);
+
+    my $params = {
+	status => ($status == HTTP_OK)
+	    ? "" : $status,
+	message => ($status == HTTP_OK)
+	    ? "" : HTTP::Status::status_message($status),
+	details => $details
+    };
+
+    my $result = app_temp({}, {}, "error", $params) ||
+	[ $status, CT_HTML, [
+	  "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n",
+	  "<html><head>\n",
+	  "<title>${params}->{status} ${params}->{message}</title>\n",
+	  "</head><body>\n",
+	  "<h1>${params}->{message}</h1>\n",
+	  "<p>${params}->{details}</p>\n",
+	  "</body></html>\n" ]];
+
+    $result->[0] = $status;
+    return $result;
+}
+
+
+##
+##  Plack request handler.
+##
+##  @param \%env	the Plack environment
+##  @return		a Plack response
+##
+
+sub app
+{
+    my $env = shift;
+
+    # Setup request method
+    my $rm = $env->{REQUEST_METHOD} || "GET";
+    $rm eq "GET" || $rm eq "POST" or
+	return error(HTTP_METHOD_NOT_ALLOWED, "Invalid method: '${rm}'");
+
+    # Setup parameters
+    my $params = Plack::Request->new($env)->parameters() or
+	return error(HTTP_BAD_REQUEST, "Invalid parameters");
+
+    # Setup path information
+    my $pi = $env->{PATH_INFO} || "/";
+    if (-d TT2DIR . $pi) {
+	$pi =~ s{/*$}{/index};
+    }
+    elsif ($pi =~ m{/index\.html$}) {
+	$pi =~ s{/index\.html$}{/index};
+    }
+
+    # Dispatch on path information
+    my $result = undef;
+    if ($pi =~ m{^/dump$}) {
+	$result = app_dump($env, $params);
+    }
+    elsif ($pi =~ m{^/(favicon\.ico)$}) {
+	$result = app_file($env, $params, $1);
+    }
+    elsif ($pi =~ m{^/file/(.+)$}) {
+	$result = app_file($env, $params, $1);
+    }
+    elsif ($pi =~ m{^/(site/\w[\w\_\.\-]*/index)$}) {
+	$result = app_temp($env, $params, $1);
+    }
+    elsif ($pi =~ m{^/site/(\w[\w\_\.\-]*)/(\w[\w\_]*)$}) {
+	$result = app_call($env, $params, $1, $2);
+    }
+    elsif ($pi =~ m{^/(.+)$}) {
+	$result = app_temp($env, $params, $1);
+    }
+    else {
+	$result = error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+    }
+
+    # Success
+    return $result;
+}
+
+
+##
+##  Create text page with dump of environment and parameters
+##
+##  @param \%env	environment
+##  @param \%params	request parameters
+##  @return		a Plack response
+##
+
+sub app_dump
+{
+    my $env = shift;
+    my $params = shift;
+
+    # Dump environment
+    my $body = [];
+    for my $k (sort keys %$env) {
+	push(@$body, "${k} => $env->{$k}\n");
+    }
+
+    # Dumpe parameters
+    push(@$body, "\n");
+    for my $k (sort keys %$params) {
+	my $v = $params->{$k};
+	if (ref($v) eq "ARRAY") {
+	    push(@$body, "param: ${k} => [" . join(", ", @$v) . "]\n");
+	}
+	else {
+	    push(@$body, "param: ${k} => ${v}\n");
+	}
+    }
+
+    # Success
+    $body = utf8_to_bytes($body);
+    return [ HTTP_OK, CT_TEXT, $body ];
+}
+
+
+##
+##  Create response from a static (raw) file.
+##
+##  @param \%env	environment
+##  @param \%params	request parameters
+##  @param $filename	filename relative to "/file"
+##  @return		a Plack response
+##
+
+sub app_file
+{
+    my $env = shift;
+    my $params = shift;
+    my $filename = shift;
+
+    # Validate file name
+    $filename =~ m{\.\.} and
+	return error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+    -f RAWDIR . "/${filename}" or
+	return error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+
+    # Slurp file
+    my $data;
+    {
+	local $/;
+	open(my $fh, "<:raw", RAWDIR . "/${filename}");
+	$data = <$fh>;
+	close($fh);
+    }
+
+    # Setup content type from file suffix
+    my $type = MIME::Types->new->mimeTypeOf($filename) ||
+	"application/octet-stream";
+
+    # Success
+    return [ HTTP_OK, [ "Content-Type" => $type ], [ $data ] ];
+}
+
+
+##
+##  Create response from a template (tt2) file.
+##
+##  @param \%env	environment
+##  @param \%params	request parameters
+##  @param $filename	filename relative to "/"
+##  @param \%vars	variables for template processing
+##  @return		a Plack response
+##
+
+sub app_temp
+{
+    my $env = shift;
+    my $params = shift;
+    my $filename = shift || "index.html";
+    my $vars = shift || {};
+
+    # Validate file name
+    $filename =~ m{\.\.} and
+	return error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+    $filename =~ m{\.inc$} and
+	return error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+    -f TT2DIR . "/${filename}.tt2" or
+	return error(HTTP_NOT_FOUND, "Invalid URI: ", ${env}->{PATH_INFO});
+    
+    # Process template
+    my $data = "";
+    my $temp = Template->new({ INCLUDE_PATH => [ TT2DIR ] }) or
+	die "ERROR: $Template::ERROR\n";
+#    $app->{temp}->process("${filename}.tt2", $vars, \$data) or
+    $temp->process("${filename}.tt2", $vars, \$data) or
+	return error(HTTP_INTERNAL_SERVER_ERROR,
+	    "Template:", $app->{temp}->error());
+
+    # Success
+    return [ HTTP_OK, CT_HTML, [ $data ] ];
+}
+
+
+##
+##  Request api information.
+##
+##  @param \%env	environment
+##  @param \%params	request parameters
+##  @param $site	api site name
+##  @param $func	api function name
+##  @return		a Plack response
+##
+
+sub app_call
+{
+    my $env = shift;
+    my $params = shift;
+    my $site = shift ||
+	return error(HTTP_INTERNAL_SERVER_ERROR);
+    my $func = shift ||
+	return error(HTTP_INTERNAL_SERVER_ERROR);
+
+    # Setup module name
+    my $module = $site;
+    $module =~ s{\W+}{_}g;
+    $module = "@Package@::API::${module}";
+
+    # Setup module
+    local @INC = ("@prefix@/lib", @INC);
+    if (!is_loaded($module)) {
+	load($module);
+	$module->can("new") or
+	    return error(HTTP_INTERNAL_SERVER_ERROR, "Module/new: ${module}");
+    }
+
+    # Setup func
+    $module->can($func) or
+        return error(HTTP_NOT_FOUND, "Invalid URI: ", $env->{PATH_INFO});
+
+    # Setup api and call command
+    my $conf = $app->{conf}->get($site) || {};
+    $conf = { %$conf, %{$app->{opts}} };
+    my $lwp = @Package@::LWP->new($conf) or
+        return error(HTTP_INTERNAL_SERVER_ERROR, $@Package@::Err::err);
+    my $api = $module->new($lwp) or
+        return error(HTTP_INTERNAL_SERVER_ERROR, $@Package@::Err::err);
+    my $json = $api->$func($params) or
+	return error(HTTP_OK, $@Package@::Err::err);
+
+    my $csv = @Package@::JSON::json_to_list($json);
+    my $result = app_temp($env, $params, "site/${site}/${func}", {
+	site => $site,
+	func => $func,
+	json => utf8_to_bytes($json),
+	json_data => json_to_data($json),
+	json_text => json_to_text($json),
+	csv => utf8_to_bytes($csv),
+	csv_data => csv_to_data($csv) });
+}
+
+
+sub utf8_to_bytes
+{
+    my $utf8 = shift;
+
+    if (!defined($utf8)) {
+	;
+    }
+    elsif (!ref($utf8)) {
+	utf8::encode($utf8);
+    }
+    elsif (ref($utf8) eq "ARRAY") {
+	$utf8 = [ map { utf8_to_bytes($_) } @$utf8 ];
+    }
+    elsif (ref($utf8) eq "HASH") {
+	$utf8 = {
+	    map { utf8_to_bytes($_) => utf8_to_bytes($utf8->{$_}) }
+	        (keys %$utf8)
+	};
+    }
+
+    return $utf8;
+}
+
+
+sub json_to_data
+{
+    my $json = shift;
+
+    my $data = @Package@::JSON::json_to_text($json);
+    $data = utf8_to_bytes($data);
+    $data = encode_base64($data);
+    $data = "data:application/json;base64," . $data;
+    return $data;
+}
+
+
+sub json_to_text
+{
+    my $json = shift;
+
+    my $data = @Package@::JSON->new()->pretty()->encode($json);
+    my @data = ();
+    foreach my $line (split(/[\n\r]/, $data)) {
+	$line = utf8_to_bytes($line);
+	push(@data, $line);
+    }
+
+    return \@data;
+}
+
+
+sub csv_to_data
+{
+    my $csv = shift;
+
+    my @data = ();
+    for my $kv (@$csv) {
+	my ($k, $v) = @$kv;
+	$k =~ s{\\}{\\\\}g;
+	$k =~ s{"}{\\"}g;
+	$v =~ s{\\}{\\\\}g;
+	$v =~ s{"}{\\"}g;
+	push(@data, "\"${k}\",\"${v}\"");
+    }
+    my $data = join("\n", @data) . "\n";
+    $data = utf8_to_bytes($data);
+    $data = encode_base64($data);
+    $data = "data:text/csv;base64," . $data;
+    return $data;
+}
+
+
+__PACKAGE__;
+__END__

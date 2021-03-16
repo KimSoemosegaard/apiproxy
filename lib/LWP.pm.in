@@ -1,0 +1,457 @@
+##  ====================================================================
+##  lib/LWP.pm - Extend LWP::UserAgent functionality
+##  ====================================================================
+
+package @Package@::LWP;
+use parent qw(LWP::UserAgent);
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Digest::MD5 qw(md5_hex);
+use HTML::TreeBuilder;
+use HTTP::Status qw(:constants);
+use LWP::Protocol::https;
+use LWP::Protocol::socks;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::JSON;
+
+
+##  User-Agent strings for Chrome
+use constant CHROME_ANDROID => "Mozilla/5.0"
+    . " (Linux; Android 10)"
+    . " AppleWebKit/537.36 (KHTML, like Gecko)"
+    . " Chrome/88.0.4324.181 Mobile Safari/537.36";
+use constant CHROME_IOS => "Mozilla/5.0"
+    . " (iPad; CPU OS 14_4 like Mac OS X)"
+    . " AppleWebKit/605.1.15 (KHTML, like Gecko)"
+    . " CriOS/87.0.4280.77 Mobile/15E148 Safari/604.1";
+use constant CHROME_LINUX => "Mozilla/5.0"
+    . " (X11; Linux x86_64)"
+    . " AppleWebKit/537.36 (KHTML, like Gecko)"
+    . " Chrome/88.0.4324.182 Safari/537.36";
+use constant CHROME_MACOS => "Mozilla/5.0"
+    . " (Macintosh; Intel Mac OS X 11_2_1)"
+    . " AppleWebKit/537.36 (KHTML, like Gecko)"
+    . " Chrome/88.0.4324.182 Safari/537.36";
+use constant CHROME_WINDOWS => "Mozilla/5.0"
+    . " (Windows NT 10.0; Win64; x64)"
+    . " AppleWebKit/537.36 (KHTML, like Gecko)"
+    . " Chrome/88.0.4324.182 Safari/537.36";
+
+
+##  User-Agent strings for Firefox
+use constant FIREFOX_LINUX => "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:86.0)"
+    . " Gecko/20100101 Firefox/86.0";
+use constant FIREFOX_MACOS => "Mozilla/5.0"
+    . " (Macintosh; Intel Mac OS X 11.2; rv:86.0)"
+    . " Gecko/20100101 Firefox/86.0";
+use constant FIREFOX_WINDOWS => "Mozilla/5.0"
+    . " (Windows NT 10.0; Win64; x64; rv:86.0)"
+    . " Gecko/20100101 Firefox/86.0";
+
+
+##  Option format strings for @Package@::CLI
+use constant XXXOPTIONS => [
+    "agent|useragent|a=s",
+    "burp|b",
+    "config|c=s",
+    "help|h|?",
+    "output|o=s",
+    "proxy|p=s",
+    "referer|r=s",
+    "tor|t",
+    "verbose|v+",
+    "timeout|w=i"
+];
+
+
+##  Module usage information for @Package@::CLI
+use constant XXXUSAGE => <<EndOfUsage;
+    Common options:
+      -a, --agent=STRING        set user agent to STRING
+      -b, --burp                prixy request via BurpSuite
+      -c, --config=FILE         read configuration from FILE
+      -h, --help                print this message
+      -o, --output=FILE         print output to FILE
+      -p, --proxy=URL           proxy request via URL
+      -r, --referer=URL         set referer to URL on request
+      -t, --tor                 proxy request via Tor
+      -v, --verbose             be more verbose
+      -w, --timeout=NUMBER      set connect/request timeout to NUMBER seconds
+EndOfUsage
+
+
+##
+##  Create and configure an @Package@::LWP object.
+##
+##  @param \%opts	options for configuring the LWP
+##  @return		an instantiated @Package@::LWP object
+##
+
+sub new
+{
+    my $class = shift;
+    my $opts = shift || {};
+
+    # Create LWP
+    my $self = $class->SUPER::new(
+        protocols_allowed => [ 'ftp', 'http', 'https' ],
+        ssl_opts => { SSL_verify_mode => 0, verify_hostname => 0 })
+	or return err(undef, "Cannot create LWP object");
+
+    # Allow redirects on POST
+    push(@{$self->requests_redirectable}, 'POST');
+
+    # Setup user agent
+    my $agent = $opts->{agent};
+    if ($agent) {
+	$agent = _rewrite_agent_string($agent);
+	$self->agent($agent);
+    }
+    
+    # Setup cookie jar
+    my $cookie_jar = {};
+    my $cookie_file = $opts->{cookie_jar};
+    if ($cookie_file) {
+	$cookie_file =~ s(^~)($ENV{HOME});
+	$cookie_jar = HTTP::Cookies->new(
+	    file => $cookie_file,
+	    autosave => 1);
+    }
+    if ($cookie_jar) {
+	$self->cookie_jar($cookie_jar);
+    }
+
+    # Referer
+    my $referer = $opts->{referer};
+    if ($referer) {
+	$self->default_header(Referer => $referer);
+    }
+
+    # Timeout
+    my $timeout = $opts->{timeout};
+    if ($timeout) {
+	$self->timeout($timeout);
+    }
+    
+    # Proxy
+    my $proxy = undef;
+    if ($opts->{tor}) {
+	$proxy = $opts->{tor_proxy} || "";
+	defined($proxy) && $proxy =~ m{^socks5?://[\w\-\_\.]+:\d+/?} or
+	    return err(undef, "Invalid Tor proxy: '${proxy}'"); 
+    }
+    elsif ($opts->{burp}) {
+	$proxy = $opts->{burp_proxy} || "";
+	defined($proxy) && $proxy =~ m{^https?://[\w\-\_\.]+:\d+/?} or
+	    return err(undef, "Invalid BurpSuite proxy: '${proxy}'"); 
+    }
+    elsif ($opts->{proxy}) {
+	$proxy = $opts->{proxy} || "";
+	defined($proxy) && $proxy =~ m{^https?://[\w\-\_\.]+(:\d+)?} or
+	    return err(undef, "Invalid proxy: '${proxy}'");
+    }
+    if ($proxy) {
+        for my $protocol (@{$self->protocols_allowed}) {
+            $self->proxy($protocol => $proxy);
+        }
+    }
+
+    # Remember options
+    $self->{_@package@_} = { %$opts };
+    $self->{_@package@_}->{verbose} = 0 unless
+	defined($self->{_@package@_}->{verbose}) &&
+	$self->{_@package@_}->{verbose} =~ m{^\d+$};
+    
+    # Success
+    return $self;
+}
+
+
+sub _rewrite_agent_string
+{
+    my $agent = shift;
+
+    $agent = CHROME_ANDROID if
+	$agent =~ m{^ca|ac|chrome\s*android|android\s*chrome$};
+    $agent = CHROME_IOS if
+	$agent =~ m{^ci|ic|chrome\s*ios|ios\s*chrome$};
+    $agent = CHROME_LINUX if
+	$agent =~ m{^c|cl|lc|chrome\s*linux|linux\s*chrome$};
+    $agent = CHROME_MACOS if
+	$agent =~ m{^cm|mc|chrome\s*macos|macos\s*chrome$};
+    $agent = CHROME_WINDOWS if
+	$agent =~ m{^cw|wc|chrome\s*windows|windows\s*chrome$};
+
+    $agent = FIREFOX_LINUX if
+	$agent =~ m{^f|fl|lf|firefox\s*linux|linux\s*firefox$};
+    $agent = FIREFOX_MACOS if
+	$agent =~ m{^fm|mf|firefox\s*macos|macos\s*firefox$};
+    $agent = FIREFOX_WINDOWS if
+	$agent =~ m{^fw|wf|firefox\s*windows|windows\s*firefox$};
+
+    return $agent;
+}
+
+
+##
+##  Get apikey from options
+##
+
+sub apikey
+{
+    my $self = shift;
+
+    defined($self->{_@package@_}->{anonymous}) &&
+	$self->{_@package@_}->{anonymous} and
+	return undef;
+    !defined($self->{_@package@_}->{apikey}) ||
+	!length($self->{_@package@_}->{apikey}) and
+	return undef;
+    return $self->{_@package@_}->{apikey};
+}
+
+
+##
+##  Get password from options
+##
+
+sub password
+{
+    my $self = shift;
+
+    defined($self->{_@package@_}->{anonymous}) &&
+	$self->{_@package@_}->{anonymous} and
+	return undef;
+    !defined($self->{_@package@_}->{password}) ||
+	!length($self->{_@package@_}->{password}) and
+	return undef;
+    return $self->{_@package@_}->{password};
+}
+
+
+##
+##  Get username from options
+##
+
+sub username
+{
+    my $self = shift;
+
+    defined($self->{_@package@_}->{anonymous}) &&
+	$self->{_@package@_}->{anonymous} and
+	return undef;
+    !defined($self->{_@package@_}->{username}) ||
+	!length($self->{_@package@_}->{username}) and
+	return undef;
+    return $self->{_@package@_}->{username};
+}
+
+
+##
+##  Get verbosity level from options
+##
+
+sub verbose
+{
+    my $self = shift;
+
+    return $self->{_@package@_}->{verbose};
+}
+
+
+##
+##  Get url
+##
+##  @param $url		the url to get
+##  @param @args	optional arguments for the get
+##  @return		the received data in scalar context, or an
+##			array of received data, status code, and
+##			content type in array context
+##
+
+sub get
+{
+    my $self = shift;
+    my $url = shift;
+    my @args = @_;
+
+    # Verbose
+    print STDERR "GET $url\n" if
+	$self->verbose > 0;
+    
+    # Fetch
+    my $req = HTTP::Request->new(GET => $url, @args) or
+	return err(undef, "Cannot create HTTP request");
+
+    # XXX Cache handling 
+    my $res = undef;
+    {
+	my $md5 = md5_hex($req->as_string);
+	my $cachedir = "@datadir@/cache";
+	mkdir($cachedir) unless -d $cachedir;
+	$cachedir .= "/" . substr($md5, 0, 4);
+	mkdir($cachedir) unless -d $cachedir;
+	my $cachefile = $cachedir . "/" . $md5;
+	if (open(my $cf, "<:raw", $cachefile)) {
+	    while (my $line = <$cf>) { last if $line =~ m{^[\n\r]+$} };
+	    my $blob = undef;
+	    { local $/; $blob = <$cf>; }
+	    $res = HTTP::Response->parse($blob) or
+		return err(undef, "Cannot parse cached response");
+	}
+	if (!$res) {
+    	    $res = $self->request($req) or
+		return err(undef, "Cannot send HTTP request");
+	    if (open(my $cf, ">:raw", $cachefile)) {
+		print $cf $req->as_string;
+		print $cf $res->as_string;
+		close($cf) or unlink($cachefile);
+	    }
+	}
+    }
+
+    # Register error if request failed - message starts with status code
+    $res->is_success or
+	err(undef, $res->status_line);
+
+    # Success
+    my $data = $res->decoded_content || "";
+    my $code = $res->code || HTTP_INTERNAL_SERVER_ERROR;
+    my $type = $res->content_type || "";
+    return wantarray ? ($data, $code, $type) : $data;
+}
+
+
+##
+##  Get url and return the content as an HTML tree.
+##
+##  @param $url		the url to get
+##  @param @args	optional arguments for the get
+##  @return		an HTML tree in scalar context, an array of
+##			HTML tree, status code, and content type in
+##			array context
+##
+
+sub get_html
+{
+    my $self = shift;
+    my $url = shift;
+    my @args = @_;
+
+    # Fetch
+    my ($data, $code, $type) = $self->get($url, @args);
+    defined($code) or
+	return undef;
+
+    # Parse
+    my $html = undef;
+    if (200 <= $code && $code <= 299) {
+	if ($type !~ m{html}) {
+	    err(undef, "Unexpected Content-Type '" . $type . "'");
+	}
+	elsif (length($data) <= 0) {
+	    err(undef, "Empty content");
+	}
+	else {
+	    $html = HTML::TreeBuilder->new_from_content($data) or
+		err(undef, "Cannot parse HTML");
+	}
+    }
+
+    # Success
+    return wantarray ? ($html, $code, $type) : $html;
+}
+
+
+##
+##  Get url and return the content as a JSON hash.
+##
+##  @param $url		the url to get
+##  @param @args	optional arguments for the get
+##  @return		a JSON hash in scalar context, an array of the
+##			JSON hash, status code, and content type in
+##			array context;
+##
+
+sub get_json
+{
+    my $self = shift;
+    my $url = shift;
+    my @args = @_;
+
+    # Fetch
+    my ($data, $code, $type) = $self->get($url, @args);
+    defined($code) or
+	return undef;
+
+    # Parse
+    my $json = undef;
+    if (200 <= $code && $code <= 299) {
+	if ($type !~ m{json|javascript}) {
+	    err(undef, "Unexpected Content-Type '" . $type . "'");
+	}
+	elsif (length($data) <= 0) {
+	    err(undef, "Empty content");
+	}
+	else {
+	    utf8::decode($data);
+	    $json = @Package@::JSON::text_to_json($data) or
+		err(undef, "Cannot parse JSON");
+	}
+    }
+
+    # Success
+    return wantarray ? ($json, $code, $type) : $json;
+}
+
+
+##
+##  Get url and return the content as a text string.
+##
+##  @param $url		the url to get
+##  @param @args	optional arguments for the get
+##  @return		a string
+##
+
+sub get_text
+{
+    my $self = shift;
+    my $url = shift;
+    my @args = @_;
+
+    # Fetch
+    my ($data, $code, $type) = $self->get($url, @args);
+    defined($code) or
+	return undef;
+
+    # Parse
+    my $text = undef;
+    if (200 <= $code && $code <= 299) {
+	if ($type !~ m{text}) {
+	    err(undef, "Unexpected Content-Type '" . $type . "'");
+	}
+	elsif (length($data) <= 0) {
+	    err(undef, "Empty content");
+	}
+	else {
+	    $text = $data;
+	}
+    }
+
+    # Success
+    return wantarray ? ($text, $code, $type) : $text;
+}
+
+
+__PACKAGE__;
+__END__

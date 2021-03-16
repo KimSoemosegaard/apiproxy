@@ -1,0 +1,126 @@
+##  ====================================================================
+##  closint/lib/@Package@/API/duckduckgo_com.pm
+##  ====================================================================
+
+package @Package@::API::duckduckgo_com;
+use parent qw(@Package@::API);
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use URI::Encode qw(uri_encode);	# space = %20
+use URL::Encode qw(url_encode); # space = +
+
+
+##  Target
+use constant SITE => "duckduckgo.com";
+my $site = SITE;
+
+
+##  Usage
+use constant USAGE => <<EndOfText;
+    API Frontend Commands:
+
+      ia QUERY
+        Search for QUERY string in DuckDuckGo\'s "Instant Answer"
+        database.
+EndOfText
+
+
+##  --------------------------------------------------------------------
+##  Constructor
+##  --------------------------------------------------------------------
+
+sub new
+{
+    my $class = shift;
+    my %args = @_;
+    
+    my $self = $class->SUPER::new(%args);
+    bless($self, $class);
+}
+
+
+##  --------------------------------------------------------------------
+##  Frontend
+##  --------------------------------------------------------------------
+
+sub ia
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $query = join(" ", @args);
+    $query =~ m(\w) or
+	return "Invalid query string";
+
+    my $url = "https://api.${site}/"
+	. "?q=" . uri_encode($query)
+	. "&format=json";
+
+    return $lwp->get_json($url);
+}
+
+
+sub q
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $query = join(" ", @args);
+    $query =~ m(\w) or
+	return "Invalid query string";
+
+    my $url = "https://links.${site}/d.js"
+	. "?q=" . uri_encode($query)
+#	. "&t=D"
+	. "&l=us-en"
+#	. "&s=0"
+#	. "&a=newext"
+#	. "&dl=en"
+#	. "&ct=DK"
+#	. "&ss_mkt=us"
+#	. "&vqd=3-192038891168801135444065962216105453346-260782757676614987350304552001909277015"
+	. "&vqd=3-910283981186081153440456692261014535436-260782757676614987350304552001909277015"
+
+#	. "&atb=v262-2__"
+#	. "&p_ent="
+#	. "&ex=-1"
+#	. "&sp=0"
+#	. "&ext=1"
+#	. "&cdrexp=b"
+#	. "&artexp=b"
+#	. "&prodexp=b"
+#	. "&prdsdexp=c"
+#	. "&biaexp=b"
+#	. "&msvrtexp=b"
+	;
+
+    my $retval = $lwp->get($url);
+    $retval->{type} =~ m(javascript) or
+	return "Unexpected Content-Type '" . $retval->{type} . "'";
+    length($retval->{data}) or
+	return "Empty conntent";
+
+    my $blob = $retval->{data};
+    print $blob, "\n";
+    exit ;
+    $blob =~ s(.*DDG\.pageLayout\.load\(\'d\',)();
+    $blob =~ s(\)\;DDG\.duckbar\.load\(.*)();
+    my $json = @Package@::JSON::text_to_json($blob) or
+	return "Cannot parse JSON";
+
+    return $json;
+}
+
+
+__PACKAGE__;
+__END__

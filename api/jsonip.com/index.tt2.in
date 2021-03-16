@@ -1,0 +1,4 @@
+[% PROCESS header.inc %]
+<h2>jsonip.com</h2>
+[% PROCESS site/jsonip.com/get.inc %]
+[% PROCESS footer.inc %]

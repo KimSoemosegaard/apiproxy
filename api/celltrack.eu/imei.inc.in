@@ -1,0 +1,8 @@
+<form method="GET" action="/site/celltrack.eu/imei" id="imei">
+  <fieldset>
+    <legend>celltrack.eu / imei</legend>
+    <label for="imei">IMEI:</label>
+    <input type="text" id="imei" name="imei"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

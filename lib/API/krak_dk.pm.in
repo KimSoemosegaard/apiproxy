@@ -1,0 +1,292 @@
+##  ====================================================================
+##  closint/lib/@Package@/krak_dk.pm
+##  ====================================================================
+
+package @Package@::API::krak_dk;
+use parent qw(@Package@::API);
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+use URI::Encode qw(uri_encode);
+
+
+##  Target
+use constant SITE => "krak.dk";
+my $site = SITE;
+my $base = "https://www.${site}";
+
+
+##  Options
+use constant OPTIONS => [
+    "all",
+    "page=i",
+    "limit=i"
+];
+
+
+##  Usage
+use constant USAGE => <<EndOfText;
+    API Frontend Commands:
+
+      company [--all] QUERY
+
+      person [--all] QUERY
+
+      phone PHONE
+
+    API Backend Commands:
+
+      _count QUERY
+        Count the number of records matching QUERY in each available
+        index.
+
+      _cs [--page PAGE] [--limit LIMIT] QUERY
+        Search for QUERY in the company index and return information
+        about at most LIMIT companies starting at offset (PAGE-1)*LIMIT.
+
+      _ps [--page PAGE] [--limit LIMIT] QUERY
+        Search for QUERY in the person index and return information
+        about at most LIMIT persons starting at offset (PAGE-1)*LIMIT.
+
+      _supersearch QUERY
+        Searches for the QUERY in all indexes and returns information
+        on which indexes to use for details.
+
+      _u2 PHONE
+        Search for abuse / fraud reports regarding the PHONE number.
+    
+    Not Implemented:
+      _splatter - information about a geographic area
+      _suggest - suggest completeions for a query
+      _wordcloud - ?
+EndOfText
+
+
+##  --------------------------------------------------------------------
+##  Constructor
+##  --------------------------------------------------------------------
+
+sub new
+{
+    my $class = shift;
+    my %args = @_;
+    
+    my $self = $class->SUPER::new(%args);
+    bless($self, $class);
+}
+
+
+##  --------------------------------------------------------------------
+##  Backend
+##  --------------------------------------------------------------------
+
+
+##  Count number of records in each database
+sub _count
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $query = join(" ", @args);
+    $query =~ m(\w) or
+	return "Invalid query string";
+    
+    my $url = "${base}/api/search/count"
+	. "?query=" . uri_encode($query)
+	. "&profile=krak";
+
+    return $lwp->get_json($url);
+}
+
+
+##  Search for company information
+sub _cs
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+    
+    my $query = join(" ", @args);
+    $query =~ m(\w) or
+	return "Invalid query string";
+
+    my $page = $opts->{page} || 1;
+    $page =~ m(^[1-9][0-9]*$) or
+	return "Invalid page number";
+	
+    my $limit = $opts->{limit} || 25;
+    $limit =~ m(^[1-9][0-9]*$) or
+	return "Invalid limit number";
+
+    $query = uri_encode($query);
+    my $ref = "${base}/${query}/firmaer";
+
+    my $url = "${base}/api/cs"
+	. "?device=desktop"
+	. "&query=${query}"
+	. "&sortOrder=default"
+	. "&profile=krak"
+	. "&page=${page}"
+	. "&lat=0"
+	. "&lng=0"
+	. "&limit=${limit}"
+	. "&review=0"
+	. "&webshop=false"
+	. "&client=true";
+
+    return $lwp->get_json($url, [ Referer => $ref ]);
+}
+
+
+##  Search for person information
+sub _ps
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $query = join(" ", @_);
+    $query =~ m(^.*\w.*$) or
+	return "Invalid query string";
+
+    my $page = $opts->{page} || 1;
+    $page =~ m(^[1-9][0-9]*$) or
+	return "Invalid page number";
+	
+    my $limit = $opts->{limit} || 25;
+    $limit =~ m(^[1-9][0-9]*$) or
+	return "Invalid limit number";
+
+    $query = uri_encode($query);
+    my $ref = "${base}/${query}/personer";
+
+    my $url = "${base}/api/ps"
+	. "?query=${query}"
+	. "&sortOrder=default"
+	. "&profile=krak"
+	. "&page=${page}"
+	. "&lat=0"
+	. "&lng=0"
+	. "&limit=${limit}"
+	. "&client=true";
+
+    return $lwp->get_json($url, [ Referer => $ref ]);
+}
+
+
+##  Determines which index to use
+sub _supersearch
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $query = join(" ", @_);
+    $query =~ m(^.*\w.*$) or
+	return "Invalid query string";
+    
+    my $url = "${base}/api/search/supersearch"
+	. "?query=" . uri_encode($query)
+	. "&profile=krak";
+
+    return $lwp->get_json($url);
+}
+
+
+##  Search for abuse reports for a specific phone number
+sub _u2
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $number = join("", @args);
+    $number =~ m(^[1-9][0-9]{7,}$) or
+	return "Invalid phone number";
+
+    my $url = "${base}/api/u2"
+	. "?number=" . uri_encode($number)
+	. "&profile=krak";
+
+    return $lwp->get_json($url);
+}
+
+
+##  --------------------------------------------------------------------
+##  Frontend
+##  --------------------------------------------------------------------
+
+sub company
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $count = $api->_count($lwp, $opts, @args);
+    ref($count) or
+	return $count;
+    defined($count->{cs}) && $count->{cs} > 0 or
+	return "No matches found";
+
+    $api->_cs($lwp, $opts, @args);
+}
+
+
+sub person
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $count = $api->_count($lwp, $opts, @args);
+    ref($count) or
+	return $count;
+    defined($count->{ps}) && $count->{ps} > 0 or
+	return "No matches found";
+
+    $api->_ps($lwp, $opts, @args);
+}
+
+
+sub phone
+{
+    my $api = shift;
+    my $lwp = shift;
+    my $opts = shift || {};
+    my @args = @_;
+
+    my $number = join(" ", @args);
+    $number =~ m(^[\d\s]+$) or
+	return "Invalid phone number";
+    $number =~ s(\s+)()g;
+    $number =~ m(^[1-9][0-9]{7,}$) or
+	return "Invalid phone number";
+
+    my $supersearch = $api->_supersearch($lwp, $opts, $number);
+    ref($supersearch) or
+	return $supersearch;
+
+    defined($supersearch->{index}) && $supersearch->{index} eq "cs" and
+	return $api->company($lwp, $opts, $number);
+    defined($supersearch->{index}) && $supersearch->{index} eq "ps" and
+	return $api->person($lwp, $opts, $number);
+    return "No matches found";
+}
+
+
+__PACKAGE__;
+__END__

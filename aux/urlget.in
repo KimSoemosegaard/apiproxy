@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Data::Dumper;
+use LWP::UserAgent;
+
+use constant FIREFOX_LINUX => "Mozilla/5.0"
+    . " (X11; Ubuntu; Linux x86_64; rv:86.0)"
+    . " Gecko/20100101 Firefox/86.0";
+
+my $url = shift(@ARGV) or
+  die "ERROR: No url?\n";
+
+my $lwp = LWP::UserAgent->new(
+    agent => FIREFOX_LINUX,
+    cookie_jar => {},
+    protocols_allowed => ['http', 'https'],
+    timeout => 10,
+  ) or die "ERROR: LWP\n";
+my $res = $lwp->get($url) or
+  die "ERROR: GET\n";
+$res->is_success or
+  die "ERROR: " . $res->status_line . "\n";
+
+#print $res->decoded_content;
+
+print $res->request->as_string;
+print $res->as_string;

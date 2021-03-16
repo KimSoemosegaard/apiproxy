@@ -1,0 +1,17 @@
+[% PROCESS header_result.inc %]
+
+<tr><td> TAC code </td><td>[% json.tac_code %]</td></tr>
+<tr><td> Device name </td><td>[% json.device_name %]</td></tr>
+<tr><td> Device brand </td><td>[% json.device_brand %]</td></tr>
+<tr><td> Operating system </td><td>[% json.operating_system %]</td></tr>
+<tr><td> Device type </td><td>[% json.device_type %]</td></tr>
+<tr><td> Device connection types </td><td>[% json.device_connection_types %]</td></tr>
+
+[% FOREACH sf IN json.supported_frequencies %]
+<tr><td> Supported frequency </td><td>[% sf %]</td></tr>
+[% END %]
+
+<tr><td> Supports NFC </td><td>[% json.supports_nfc %]</td></tr>
+<tr><td> Supports Bluetooth </td><td>[% json.supports_bluetooth %]</td></tr>
+<tr><td> Supports WiFi </td><td>[% json.supports_wifi %]</td></tr>
+[% PROCESS footer_result.inc %]

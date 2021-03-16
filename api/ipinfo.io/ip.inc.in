@@ -1,0 +1,8 @@
+<form method="GET" action="/site/ipinfo.io/ip" id="ip">
+  <fieldset>
+    <legend>restcountries.eu / ip</legend>
+    <label for="ip">IP Address:</label>
+    <input type="text" id="ip" name="ip"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>

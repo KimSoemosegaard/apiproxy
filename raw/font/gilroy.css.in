@@ -1,0 +1,56 @@
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 300;
+  font-style: normal;
+  src: url('gilroy-light.eot');
+  src: url('gilroy-light.eot?#iefix') format('embedded-opentype'),url('gilroy-light.woff2') format('woff2'),url('gilroy-light.woff') format('woff'),url('gilroy-light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 300;
+  font-style: italic;
+  src: url('gilroy-lightitalic.eot');
+  src: url('gilroy-lightitalic.eot?#iefix') format('embedded-opentype'),url('gilroy-lightitalic.woff2') format('woff2'),url('gilroy-lightitalic.woff') format('woff'),url('gilroy-lightitalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 400;
+  font-style: normal;
+  src: url('gilroy-semibold.eot');
+  src: url('gilroy-semibold.eot?#iefix') format('embedded-opentype'),url('gilroy-semibold.woff2') format('woff2'),url('gilroy-semibold.woff') format('woff'),url('gilroy-semibold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 400;
+  font-style: italic;
+  src: url('gilroy-semibolditalic.eot');
+  src: url('gilroy-semibolditalic.eot?#iefix') format('embedded-opentype'),url('gilroy-semibolditalic.woff2') format('woff2'),url('gilroy-semibolditalic.woff') format('woff'),url('gilroy-semibolditalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 500;
+  font-style: normal;
+  src: url('gilroy-semibold.eot');
+  src: url('gilroy-semibold.eot?#iefix') format('embedded-opentype'),url('gilroy-semibold.woff2') format('woff2'),url('gilroy-semibold.woff') format('woff'),url('gilroy-semibold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 500;
+  font-style: italic;
+  src: url('gilroy-semibolditalic.eot');
+  src: url('gilroy-semibolditalic.eot?#iefix') format('embedded-opentype'),url('gilroy-semibolditalic.woff2') format('woff2'),url('gilroy-semibolditalic.woff') format('woff'),url('gilroy-semibolditalic.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 700;
+  font-style: normal;
+  src: url('gilroy-semibold.eot');
+  src: url('gilroy-semibold.eot?#iefix') format('embedded-opentype'),url('gilroy-semibold.woff2') format('woff2'),url('gilroy-semibold.woff') format('woff'),url('gilroy-semibold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'gilroy';
+  font-weight: 700;
+  font-style: italic;
+  src: url('gilroy-semibolditalic.eot');
+  src: url('gilroy-semibolditalic.eot?#iefix') format('embedded-opentype'),url('gilroy-semibolditalic.woff2') format('woff2'),url('gilroy-semibolditalic.woff') format('woff'),url('gilroy-semibolditalic.ttf') format('truetype');
+}

@@ -1,0 +1,8 @@
+[% PROCESS header_result.inc %]
+
+<tr>
+  <td>Your IP address:</td>
+  <td>[% json.ip %]</td>
+</tr>
+
+[% PROCESS footer_result.inc %]

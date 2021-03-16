@@ -1,0 +1,54 @@
+[% PROCESS header_result.inc %]
+
+[% FOREACH country IN json %]
+
+<tr><td> alpha2Code </td><td>[% country.alpha2Code %]</td></tr>
+<tr><td> alpha3Code </td><td>[% country.alpha3Code %]</td></tr>
+<tr><td> altSpellings.0 </td><td>[% country.altSpellings.0 %]</td></tr>
+<tr><td> altSpellings.1 </td><td>[% country.altSpellings.1 %]</td></tr>
+<tr><td> altSpellings.2 </td><td>[% country.altSpellings.2 %]</td></tr>
+<tr><td> altSpellings.3 </td><td>[% country.altSpellings.3 %]</td></tr>
+<tr><td> area </td><td>[% country.area %]</td></tr>
+<tr><td> borders.0 </td><td>[% country.borders.0 %]</td></tr>
+<tr><td> callingCodes.0 </td><td>[% country.callingCodes.0 %]</td></tr>
+<tr><td> capital </td><td>[% country.capital %]</td></tr>
+<tr><td> cioc </td><td>[% country.cioc %]</td></tr>
+<tr><td> currencies.0.code </td><td>[% country.currencies.0.code %]</td></tr>
+<tr><td> currencies.0.name </td><td>[% country.currencies.0.name %]</td></tr>
+<tr><td> currencies.0.symbol </td><td>[% country.currencies.0.symbol %]</td></tr>
+<tr><td> demonym </td><td>[% country.demonym %]</td></tr>
+<tr><td> flag </td><td>[% country.flag %]</td></tr>
+<tr><td> gini </td><td>[% country.gini %]</td></tr>
+<tr><td> languages.0.iso639_1 </td><td>[% country.languages.0.iso639_1 %]</td></tr>
+<tr><td> languages.0.iso639_2 </td><td>[% country.languages.0.iso639_2 %]</td></tr>
+<tr><td> languages.0.name </td><td>[% country.languages.0.name %]</td></tr>
+<tr><td> languages.0.nativeName </td><td>[% country.languages.0.nativeName %]</td></tr>
+<tr><td> languages.1.iso639_1 </td><td>[% country.languages.1.iso639_1 %]</td></tr>
+<tr><td> languages.1.iso639_2 </td><td>[% country.languages.1.iso639_2 %]</td></tr>
+<tr><td> languages.1.name </td><td>[% country.languages.1.name %]</td></tr>
+<tr><td> languages.1.nativeName </td><td>[% country.languages.1.nativeName %]</td></tr>
+<tr><td> latlng.0 </td><td>[% country.latlng.0 %]</td></tr>
+<tr><td> latlng.1 </td><td>[% country.latlng.1 %]</td></tr>
+<tr><td> name </td><td>[% country.name %]</td></tr>
+<tr><td> nativeName </td><td>[% country.nativeName %]</td></tr>
+<tr><td> numericCode </td><td>[% country.numericCode %]</td></tr>
+<tr><td> population </td><td>[% country.population %]</td></tr>
+<tr><td> region </td><td>[% country.region %]</td></tr>
+<tr><td> regionalBlocs.0.acronym </td><td>[% country.regionalBlocs.0.acronym %]</td></tr>
+<tr><td> regionalBlocs.0.name </td><td>[% country.regionalBlocs.0.name %]</td></tr>
+<tr><td> subregion </td><td>[% country.subregion %]</td></tr>
+<tr><td> timezones.0 </td><td>[% country.timezones.0 %]</td></tr>
+<tr><td> topLevelDomain.0 </td><td>[% country.topLevelDomain.0 %]</td></tr>
+<tr><td> translations.br </td><td>[% country.translations.br %]</td></tr>
+<tr><td> translations.de </td><td>[% country.translations.de %]</td></tr>
+<tr><td> translations.es </td><td>[% country.translations.es %]</td></tr>
+<tr><td> translations.fa </td><td>[% country.translations.fa %]</td></tr>
+<tr><td> translations.fr </td><td>[% country.translations.fr %]</td></tr>
+<tr><td> translations.hr </td><td>[% country.translations.hr %]</td></tr>
+<tr><td> translations.it </td><td>[% country.translations.it %]</td></tr>
+<tr><td> translations.ja </td><td>[% country.translations.ja %]</td></tr>
+<tr><td> translations.nl </td><td>[% country.translations.nl %]</td></tr>
+<tr><td> translations.pt </td><td>[% country.translations.pt %]</td></tr>
+[% END %]
+
+[% PROCESS footer_result.inc %]

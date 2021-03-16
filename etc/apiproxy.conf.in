@@ -1,0 +1,46 @@
+##  ====================================================================
+##  etc/@package@.conf
+##  ====================================================================
+
+##  Common options
+verbose = 0
+
+
+##  --------------------------------------------------------------------
+##  Browser
+##  --------------------------------------------------------------------
+
+agent = firefox linux
+referer = https://google.com
+timeout = 10
+
+
+##  --------------------------------------------------------------------
+##  Proxying
+##  --------------------------------------------------------------------
+
+##  Proxy via Tor when called with --tor
+tor = 0
+tor_proxy = socks://127.0.0.1:9050
+
+##  Proxy via BurpSuite when called with --burp
+burp = 0
+burp_proxy = http://127.0.0.1:8080
+
+##  Proxy via URL when called with --proxy URL
+proxy =
+
+
+##  --------------------------------------------------------------------
+##  Sites
+##  --------------------------------------------------------------------
+
+[jsonip.com]
+
+[restcountries.eu]
+
+#[google.com]
+#apikey = AIzaSyB6KNIjwVg8fyyapWjzEq2tEVvKmifbxlM
+
+[ipinfo.io]
+#apikey = 50c1b840344f98

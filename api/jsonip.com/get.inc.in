@@ -1,0 +1,6 @@
+<form method="GET" action="/site/jsonip.com/get">
+  <fieldset>
+    <legend>jsonip.com / get</legend>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
