@@ -10,8 +10,8 @@ LIBFILES +=	duckduckgo_com.pm
 GENERATED +=	${LIBFILES}
 
 TT2FILES +=	index.tt2
-TT2FILES +=	query.tt2
-TT2FILES +=	query.inc
+TT2FILES +=	instant_answers.tt2
+TT2FILES +=	instant_answers.inc
 GENERATED +=	${TT2FILES}
 
 all::		${LIBFILES}

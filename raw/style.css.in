@@ -169,6 +169,10 @@ main fieldset button a:hover {
     color: #002e49;
 }
 
+.tabcontent table tr th,
+.tabcontent table tr td {
+    vertical-align: baseline;
+}
 
 #text.tabcontent table tr th {
     padding-top: 0.5em;

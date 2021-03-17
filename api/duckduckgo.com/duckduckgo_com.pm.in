@@ -26,7 +26,7 @@ use @Package@::Err;
 ##  @return		JSON hash of IP information
 ##
 
-sub query
+sub instant_answers
 {
     my $self = shift;
     my $params = shift || {};

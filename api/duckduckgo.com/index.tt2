@@ -1,4 +1,0 @@
-[% PROCESS header.inc %]
-<h2>duckduckgo.com</h2>
-[% PROCESS site/duckduckgo.com/query.inc %]
-[% PROCESS footer.inc %]

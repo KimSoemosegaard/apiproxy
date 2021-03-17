@@ -7,6 +7,7 @@ libdir =	${prefix}/lib
 tt2dir =	${prefix}/tt2
 
 SUBDIRS +=	celltrack.eu
+SUBDIRS +=	duckduckgo.com
 SUBDIRS +=	ipinfo.io
 SUBDIRS +=	jsonip.com
 SUBDIRS +=	restcountries.eu
