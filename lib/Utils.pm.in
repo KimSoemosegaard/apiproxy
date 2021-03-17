@@ -21,6 +21,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
     str2str str2ascii str2name
     urlencode urldecode urlencodeplus urldecodeplus
+    htmlencode htmldecode
     str2sec str2ago
     ip2int int2ip
     imei_checkdigit
@@ -150,6 +151,38 @@ sub urldecodeplus
     $str =~ s/\+/\x20/g;
     $str =~ s/\%([A-Fa-f0-9]{2})/chr(hex($1))/seg;
     utf8::decode($str);
+    return $str;
+}
+
+
+##  --------------------------------------------------------------------
+##  HTML encoding
+##  --------------------------------------------------------------------
+
+sub htmlencode
+{
+    my $str = shift;
+    defined($str) && !ref($str) or
+	return $str;
+
+    $str =~ s/\&/&amp;/g;
+    $str =~ s/\</&lt;/g;
+    $str =~ s/\>/&gt;/g;
+    utf8::encode($str);
+    return $str;
+}
+
+
+sub htmldecode
+{
+    my $str = shift;
+    defined($str) && !ref($str) or
+	return $str;
+
+    utf8::decode($str);
+    $str =~ s/\>/&gt;/g;
+    $str =~ s/\</&lt;/g;
+    $str =~ s/\&/&amp;/g;
     return $str;
 }
 

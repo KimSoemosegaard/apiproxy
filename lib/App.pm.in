@@ -27,6 +27,7 @@ use @Package@::Config;
 use @Package@::Err;
 use @Package@::JSON;
 use @Package@::LWP;
+use @Package@::Utils;
 
 ##  Directories
 use constant RAWDIR => "@prefix@/raw";
@@ -351,10 +352,7 @@ sub app_temp
     
     # Process template
     my $data = "";
-    my $temp = Template->new({ INCLUDE_PATH => [ TT2DIR ] }) or
-	die "ERROR: $Template::ERROR\n";
-#    $app->{temp}->process("${filename}.tt2", $vars, \$data) or
-    $temp->process("${filename}.tt2", $vars, \$data) or
+    $app->{temp}->process("${filename}.tt2", $vars, \$data) or
 	return error(HTTP_INTERNAL_SERVER_ERROR,
 	    "Template:", $app->{temp}->error());
 
@@ -416,8 +414,21 @@ sub app_call
 	json => utf8_to_bytes($json),
 	json_data => json_to_data($json),
 	json_text => json_to_text($json),
-	csv => utf8_to_bytes($csv),
+	csv => csv_encode($csv),
 	csv_data => csv_to_data($csv) });
+}
+
+
+sub csv_encode
+{
+    my $src = shift;
+
+    my $dst = [];
+    foreach my $item (@$src) {
+	push(@$dst, [ htmlencode($item->[0]), htmlencode($item->[1]) ]);
+    }
+
+    return $dst;
 }
 
 
@@ -462,13 +473,15 @@ sub json_to_text
     my $json = shift;
 
     my $data = @Package@::JSON->new()->pretty()->encode($json);
-    my @data = ();
+    $data = htmlencode($data);
+
+    my $list = [];
     foreach my $line (split(/[\n\r]/, $data)) {
 	$line = utf8_to_bytes($line);
-	push(@data, $line);
+	push(@$list, $line);
     }
 
-    return \@data;
+    return $list;
 }
 
 
