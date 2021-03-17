@@ -10,7 +10,10 @@ RAWFILES +=	favicon.ico
 RAWFILES +=	icon.svg
 RAWFILES +=	script.js
 RAWFILES +=	style.css
-GENERATED +=	${RAWFILES}
+
+GENERATED +=	icon.svg
+GENERATED +=	script.js
+GENERATED +=	style.css
 
 
 all::		${RAWFILES}

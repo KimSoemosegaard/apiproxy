@@ -48,7 +48,7 @@ distclean::	clean
 
 all install clean distclean::
 		@for subdir in ${SUBDIRS}; do				\
-		  cd $${subdir}; make $@; cd ..;			\
+		  cd $${subdir}; make $@ || exit 1; cd ..;		\
 		done
 
 
