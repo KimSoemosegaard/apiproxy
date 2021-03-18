@@ -1,0 +1,140 @@
+##  ====================================================================
+##  api/hackertarget.com/hackertarget_com.pm
+##  ====================================================================
+
+package @Package@::API::hackertarget_com;
+use parent qw(@Package@::API);
+my $site = "hackertarget.com";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::Utils;
+
+
+##
+##  hackertarget.com/dns_lookup
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub dns_lookup
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $hostname = $params->{hostname} || "";
+    $hostname =~ m{\w+\.\w+} or
+	return err(undef, "Invalid host: '${hostname}'");
+    $hostname =~ m{^\d+\.\d+\.\d+\.\d+$} and
+	return err(undef, "Invalid host: '${hostname}'");
+
+    my $ref = "https://${site}/";
+    my $url = "https://api.${site}/dnslookup/?q=" . urlencode($hostname);
+    my ($text, $code) = $self->get_text($url, [ Referer => $ref ]);
+    defined($code) or
+	return undef;
+
+    my $json = {};
+    for my $line (split(/[\n\r]+/, $text)) {
+	$line =~ m{^\s*([A-Z]+)\s*:\s*(\S.*)$} or next;
+	my ($key, $val) = ($1, $2);
+	$json->{$key} ||= [];
+	push(@{$json->{$key}}, $val);
+    }
+
+    return $json;
+}
+
+
+##
+##  hackertarget.com/ping
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub ping
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $host = $params->{host} || "";
+    $host =~ m{\w+\.\w+} or
+	return err(undef, "Invalid host: '${host}'");
+
+    my $ref = "https://${site}/";
+    my $url = "https://api.${site}/nping/?q=" . urlencode($host);
+    my ($text, $code) = $self->get_text($url, [ Referer => $ref ]);
+    defined($code) or
+	return undef;
+
+    # XXX Parse text and return json
+    return [ split(/[\n\r]+/, $text) ];
+}
+
+
+##
+##  hackertarget.com/traceroute
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub traceroute
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $host = $params->{host} || "";
+    $host =~ m{\w+\.\w+} or
+	return err(undef, "Invalid host: '${host}'");
+
+    my $ref = "https://${site}/";
+    my $url = "https://api.${site}/mtr/?q=" . urlencode($host);
+    my ($text, $code) = $self->get_text($url, [ Referer => $ref ]);
+    defined($code) or
+	return undef;
+
+    my $list = [];
+    foreach my $line (split(/[\n\r]+/, $text)) {
+	my @line = ($line =~ m{\S+}g);
+	$line[0] =~ m{^(\d+)\.\|\-\-$} or
+	    next;
+
+	my $item = { hop => $1 };
+	$item->{host} = $line[1] if
+	    $line[1] =~ m{\w+\.\w+};
+	$item->{loss} = $line[2] if
+	    $line[2] =~ m{^\d+\.\d+\%$};
+	$item->{sent} = $line[3] if
+	    $line[3] =~ m{^\d+$};
+	$item->{last} = $line[4] if
+	    $line[4] =~ m{^\d+\.\d+$};
+	$item->{avg} = $line[5] if
+	    $line[5] =~ m{^\d+\.\d+$};
+	$item->{best} = $line[6] if
+	    $line[6] =~ m{^\d+\.\d+$};
+	$item->{worst} = $line[7] if
+	    $line[7] =~ m{^\d+\.\d+$};
+	$item->{stddev} = $line[8] if
+	    $line[8] =~ m{^\d+\.\d+$};
+	push(@$list, $item);
+    }
+
+    return $list;
+}
+
+
+__PACKAGE__;
+__END__

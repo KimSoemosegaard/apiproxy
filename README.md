@@ -91,7 +91,6 @@
 
 
 ## Technical debt
-* Error handling in all modules
 * json?? should use library functions
 * A proper Javascript parser would be nice - JE?
 

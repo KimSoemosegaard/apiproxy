@@ -1,0 +1,15 @@
+[% PROCESS header_result.inc %]
+[% FOREACH item IN json -%]
+
+<tr><th> Hop# [% item.hop %] </th><td></td></tr>
+<tr><td> Host </td><td>[% item.host %]</td></tr>
+<tr><td> Number of packets sent </td><td>[% item.sent %]</td></tr>
+<tr><td> Loss </td><td>[% item.loss %]%</td></tr>
+<tr><td> Time of last packet </td><td>[% item.last %]s</td></tr>
+<tr><td> Average time </td><td>[% item.avg %]s</td></tr>
+<tr><td> Best time </td><td>[% item.best %]s</td></tr>
+<tr><td> Worst time </td><td>[% item.worst %]s</td></tr>
+<tr><td> Standard deviation </td><td>[% item.stddev %]s</td></tr>
+
+[% END -%]
+[% PROCESS footer_result.inc %]

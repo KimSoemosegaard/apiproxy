@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Cwd qw(cwd);
+use Template;
+
+##  Local packages
+use lib '@prefix@/lib';
+
+##  Main program
+{
+    # Get parameters from command line
+    my $site = shift or die "Usage: $0 SITE [FUNC]...\n";
+    my $funcs = [ sort @ARGV ];
+
+    # Setup template variables
+    my $site_ = $site; $site_ =~ s{\W}{_}g;
+    my $vars = { site => $site, site_ => $site_, funcs => $funcs };
+
+    # Setup template handling
+#    my $temp = Template->new({ INCLUDE_PATH => "@prefix@/etc" }) or
+    my $temp = Template->new({ INCLUDE_PATH => cwd . "/../etc" }) or
+	die "$Template::ERROR\n";
+
+    # Setup site directory
+    if (-d $site) {
+	warn "[!] Skipping '${site}' - directory exists\n";
+    }
+    else {
+	print "[*] Creating '${site}'\n";
+	mkdir $site or
+	    die "[-] Cannot create directory '${site}' - $!\n";
+    }
+
+    generate($temp, "${site}/${site_}.pm.in", "api-site.pm.in.tt2", $vars);
+    generate($temp, "${site}/index.tt2.in", "api-index.tt2.in.tt2", $vars);
+    generate($temp, "${site}/Makefile", "api-make.tt2", $vars);
+    for my $func (@$funcs) {
+	generate($temp, "${site}/${func}.inc.in", "api-func.inc.in.tt2",
+	    { %$vars, func => $func });
+	generate($temp, "${site}/${func}.tt2.in", "api-func.tt2.in.tt2",
+	    { %$vars, func => $func });
+    }
+}
+
+
+sub generate
+{
+    my $temp = shift;
+    my $dstfile = shift;
+    my $srcfile = shift;
+    my $vars = shift;
+
+    if (-f $dstfile) {
+	warn "[!] Skipping '${dstfile}' - file exists\n";
+    }
+    else {
+	print "[*] Creating '${dstfile}'\n";
+	$temp->process($srcfile, $vars, $dstfile) ||
+	    die "[-] Cannot create file '${dstfile}' - " . $temp->error() . "\n";
+    }
+}

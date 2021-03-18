@@ -5,8 +5,7 @@
 include		../config.mk
 
 AUXFILES +=	csv2text
-AUXFILES +=	urlget
-AUXFILES +=	urlload
+AUXFILES +=	makesite
 GENERATED +=	${AUXFILES}
 
 

@@ -1,0 +1,49 @@
+##  ====================================================================
+##  api/[% site %]/[% site_ %].pm
+##  ====================================================================
+
+package @Package@::API::[% site_ %];
+use parent qw(@Package@::API);
+my $site = "[% site %]";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::Utils;
+
+
+[% FOREACH func IN funcs -%]
+##
+##  [% site %]/[% func %]
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub [% func %]
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $param = $params->{param} || "";
+    $param =~ m{\w} or
+	return err(undef, "Invalid param: '${param}'");
+
+    my $ref = "https://${site}/";
+    my $url = "https://${site}/[% func %]" . "?param= . urlencode($param);
+    return $self->get_json($url, [ Referer => $ref ]);
+}
+
+
+[% END -%]
+__PACKAGE__;
+__END__

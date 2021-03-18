@@ -1,0 +1,6 @@
+[[%%]% PROCESS header.inc %]
+<h2>[% site %]</h2>
+[% FOREACH func IN funcs -%]
+[[%%]% PROCESS site/[% site %]/[% func %].inc %]
+[% END -%]
+[[%%]% PROCESS footer.inc %]

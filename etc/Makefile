@@ -6,7 +6,7 @@ include		../config.mk
 etcdir =	${prefix}/etc
 
 ETCFILES +=	${package}.conf
-GENERATED +=	${ETCFILES}
+GENERATED +=	${package}.conf
 
 
 all:		${ETCFILES}

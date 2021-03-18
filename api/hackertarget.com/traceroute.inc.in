@@ -1,0 +1,9 @@
+<form method="GET" action="/site/hackertarget.com/traceroute" id="traceroute">
+  <fieldset>
+    <legend>hackertarget.com / traceroute</legend>
+    <label for="traceroute">Host:</label>
+    <input type="text" id="host" name="host"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

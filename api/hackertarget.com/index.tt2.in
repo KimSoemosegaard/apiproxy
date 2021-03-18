@@ -1,0 +1,6 @@
+[% PROCESS header.inc %]
+<h2>hackertarget.com</h2>
+[% PROCESS site/hackertarget.com/dns_lookup.inc %]
+[% PROCESS site/hackertarget.com/ping.inc %]
+[% PROCESS site/hackertarget.com/traceroute.inc %]
+[% PROCESS footer.inc %]

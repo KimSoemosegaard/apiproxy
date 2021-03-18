@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/starman --listen :5000 @prefix@/lib/@Package@/app.psgi

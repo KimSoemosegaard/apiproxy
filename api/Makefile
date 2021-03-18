@@ -8,6 +8,7 @@ tt2dir =	${prefix}/tt2
 
 SUBDIRS +=	celltrack.eu
 SUBDIRS +=	duckduckgo.com
+SUBDIRS +=	hackertarget.com
 SUBDIRS +=	ipinfo.io
 SUBDIRS +=	jsonip.com
 SUBDIRS +=	restcountries.eu

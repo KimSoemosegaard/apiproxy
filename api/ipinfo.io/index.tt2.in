@@ -1,4 +1,10 @@
 [% PROCESS header.inc %]
 <h2>ipinfo.ip</h2>
+
+<i class="fa fa-quote-left fa-1x fa-pull-left fa-border" aria-hidden="true"></i>
+We're the trusted source for IP address information, handling 20 billion
+IP geolocation API requests per month for over 1,000 businesses and
+100,000+ developers.
+
 [% PROCESS site/ipinfo.io/ip.inc %]
 [% PROCESS footer.inc %]

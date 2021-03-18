@@ -1,0 +1,9 @@
+<form method="GET" action="/site/hackertarget.com/dns_lookup" id="dns_lookup">
+  <fieldset>
+    <legend>hackertarget.com / dns_lookup</legend>
+    <label for="hostname">Hostname:</label>
+    <input type="text" id="hostname" name="hostname"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

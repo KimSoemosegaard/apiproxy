@@ -1,0 +1,9 @@
+<form method="GET" action="/site/[% site %]/[% func %]" id="[% func %]">
+  <fieldset>
+    <legend>[% site %] / [% func %]</legend>
+    <label for="[% func %]">[% func %]:</label>
+    <input type="text" id="[% func %]" name="[% func %]"><br>
+    [[%%]% PROCESS submit_button %]
+  </fieldset>
+</form>
+

@@ -1,0 +1,8 @@
+[[%%]% PROCESS header_result.inc %]
+
+<tr>
+  <td>Text view not available</td>
+  <td></td>
+</tr>
+
+[[%%]% PROCESS footer_result.inc %]

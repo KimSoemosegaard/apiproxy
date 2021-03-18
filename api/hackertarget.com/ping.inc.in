@@ -1,0 +1,9 @@
+<form method="GET" action="/site/hackertarget.com/ping" id="ping">
+  <fieldset>
+    <legend>hackertarget.com / ping</legend>
+    <label for="host">Host:</label>
+    <input type="text" id="host" name="host"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

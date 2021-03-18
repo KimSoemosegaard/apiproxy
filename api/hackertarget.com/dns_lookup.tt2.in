@@ -1,0 +1,13 @@
+[% PROCESS header_result.inc %]
+
+[% types = [ "A", "AAAA", "MX", "NS", "PTR", "SOA", "TXT" ]; %]
+[% FOREACH type IN types -%]
+[%  IF json.$type -%]
+<tr><th> [% type %] </th><td></td></tr>
+[%   FOREACH value IN json.$type -%]
+<tr><td>[% value %]</td><td></td></tr>
+[%   END -%]
+[%  END -%]
+[% END -%]
+
+[% PROCESS footer_result.inc %]

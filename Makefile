@@ -5,7 +5,7 @@
 include		./config.mk
 libdir =	${prefix}/lib
 
-SUBDIRS =	bin etc lib raw tt2 api
+SUBDIRS =	aux bin etc lib raw tt2 api
 
 FILES +=	README.pdf
 GENERATED +=	README.pdf

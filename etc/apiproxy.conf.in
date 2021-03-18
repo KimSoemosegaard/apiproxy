@@ -37,12 +37,39 @@ proxy =
 
 [celltrack.eu]
 
+[duckduckgo.com]
+
+##
+##  Without membeship: limited to 50 queries / day.
+##
+##  Increased timeout as some requests like "traceroute" take a long
+##  time to complete.
+##
+[hackertarget.com]
+timeout = 60
+
+##
+##  Get free API key via registration at:
+##    https://ipinfo.io/signup
+##
+##  Without API key: full information about an IP address for a very
+##  limited amount of lookups per dey per client IP address.
+##
+##  With a free API key: a limited amount of information but with a
+##  larger (unlimited?) amount of lookups.
+##
+##  With a paid API key: additional information up to the full
+##  information, differen tiers provides different amounts of
+##  information.
+##
 [ipinfo.io]
 #apikey = 
 
 [jsonip.com]
 
 [restcountries.eu]
+
+
 
 #[google.com]
 #apikey = 
