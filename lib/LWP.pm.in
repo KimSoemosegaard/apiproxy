@@ -293,9 +293,13 @@ sub get
     my $req = HTTP::Request->new(GET => $url, @args) or
 	return err(undef, "Cannot create HTTP request");
 
-    # XXX Cache handling 
+    # XXX Cache handling ?
     my $res = undef;
-    {
+    if (1) {
+        $res = $self->request($req) or
+	    return err(undef, "Cannot send HTTP request");
+    }
+    else {
 	my $md5 = md5_hex($req->as_string);
 	my $cachedir = "@datadir@/cache";
 	mkdir($cachedir) unless -d $cachedir;

@@ -9,6 +9,8 @@ SUBDIRS =	aux bin etc lib raw tt2 api
 
 FILES +=	README.pdf
 GENERATED +=	README.pdf
+FILES +=	SITES.pdf
+GENERATED +=	SITES.pdf
 FILES +=	TODO.pdf
 GENERATED +=	TODO.pdf
 

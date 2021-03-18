@@ -1,0 +1,9 @@
+<form method="GET" action="/site/krak.dk/person_by_phone">
+  <fieldset>
+    <legend>krak.dk / person_by_phone</legend>
+    <label for="phone">Phone number:</label>
+    <input type="text" id="phone" name="phone"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

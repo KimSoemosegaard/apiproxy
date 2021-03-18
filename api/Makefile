@@ -11,6 +11,7 @@ SUBDIRS +=	duckduckgo.com
 SUBDIRS +=	hackertarget.com
 SUBDIRS +=	ipinfo.io
 SUBDIRS +=	jsonip.com
+SUBDIRS +=	krak.dk
 SUBDIRS +=	restcountries.eu
 
 

@@ -1,0 +1,9 @@
+<form method="GET" action="/site/krak.dk/company_by_name" id="company_by_name">
+  <fieldset>
+    <legend>krak.dk / company_by_name</legend>
+    <label for="company_by_name">company_by_name:</label>
+    <input type="text" id="company_by_name" name="company_by_name"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

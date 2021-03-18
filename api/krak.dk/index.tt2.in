@@ -1,0 +1,4 @@
+[% PROCESS header.inc %]
+<h2>krak.dk</h2>
+[% PROCESS site/krak.dk/company.inc %]
+[% PROCESS footer.inc %]

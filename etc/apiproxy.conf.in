@@ -40,7 +40,7 @@ proxy =
 [duckduckgo.com]
 
 ##
-##  Without membeship: limited to 50 queries / day.
+##  Free: limited to 50 queries / day.
 ##
 ##  Increased timeout as some requests like "traceroute" take a long
 ##  time to complete.

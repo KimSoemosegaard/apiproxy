@@ -12,7 +12,7 @@ GENERATED +=	${AUXFILES}
 all::		${AUXFILES}
 		chmod +x ${AUXFILES}
 
-install::
+install::	all
 
 clean::
 		rm -f ${GENERATED}

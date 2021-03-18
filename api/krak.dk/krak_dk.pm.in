@@ -1,0 +1,235 @@
+##  ====================================================================
+##  api/krak.dk/krak_dk.pm
+##  ====================================================================
+
+package @Package@::API::krak_dk;
+use parent qw(@Package@::API);
+my $site = "krak.dk";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::Utils;
+
+
+##  Count and return number of matches in each of krak.dk's own indexes
+sub _count
+{
+    my $self = shift;
+    my $query = shift;
+
+    utf8::decode($query);
+    $query =~ m{\S} or
+	return err(undef, "Invalid query: '${query}'");
+
+    my $ref = "https://www.krak.dk/";
+    my $url = "https://www.krak.dk/api/search/count?" . join("&",
+	"query=" . urlencodeplus($query),
+	"profile=krak");
+
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) && 200 <= $code && $code <= 299 or
+	return undef;
+
+    return $json;
+}
+
+
+sub _cs
+{
+    my $self = shift;
+    my $query = shift;
+
+    utf8::decode($query);
+    $query =~ m{\S} or
+	return err(undef, "Invalid query: '${query}'");
+
+    my $ref = "https://www.krak.dk/";
+    my $url = "https://www.krak.dk/api/cs?" . join("&",
+	"device=desktop",
+	"query=" . urlencodeplus($query),
+	"sortOrder=default",
+	"profile=krak",
+	"page=1",
+	"lat=0",
+	"lng=0",
+	"limit=25",
+	"review=0",
+	"webshop=false",
+	"&client=true");
+    
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) && 200 <= $code && $code <= 299 or
+	return undef;
+
+    return $json;
+}
+
+
+##  Search eniro.com's wp/yp/geo index
+sub _mapsearch
+{
+    my $self = shift;
+    my $query = shift;
+    my $index = shift || "ypwpgeo";
+    
+    utf8::decode($query);
+    $query =~ m{\S} or
+	return err(undef, "Invalid query: '${query}'");
+
+    my $ref = "https://map.krak.dk/";
+    my $url = "https://mapsearch.eniro.com/search/search.json?" . join("&",
+        "phase=first",
+	"index=${index}",
+	"profile=dk_krak",
+	"q=${query}",
+	#"center=10.35%2C56.1",
+	#"zoom=7",
+	"sortOrder=default",
+	#"viewPx=1296%2C414",
+	#"adjPx=0%2C0%2C0%2C0",
+	"pageSize=10",
+	"version=4",
+	"hasLink=true",
+	"isSeoSearch=true",
+	"offset=0");
+    
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) && 200 <= $code && $code <= 299 or
+	return undef;
+    
+    return $json;
+}
+
+
+sub _ps
+{
+    my $self = shift;
+    my $query = shift;
+
+    utf8::decode($query);
+    $query =~ m{\S} or
+	return err(undef, "Invalid query: '${query}'");
+
+    my $ref = "https://www.krak.dk/";
+    my $url = "https://www.krak.dk/api/ps?" . join("&",
+	"device=desktop",
+	"query=" . urlencodeplus($query),
+	"sortOrder=default",
+	"profile=krak",
+	"page=1",
+	"lat=0",
+	"lng=0",
+	"limit=25",
+	"review=0",
+	"webshop=false",
+	"&client=true");
+    
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) && 200 <= $code && $code <= 299 or
+	return undef;
+
+    return $json;
+}
+
+
+##  Determine what index to use
+sub _supersearch
+{
+    my $self = shift;
+    my $query = shift;
+
+    utf8::decode($query);
+    $query =~ m{\S} or
+	return err(undef, "Invalid query: '${query}'");
+
+    my $ref = "https://www.krak.dk/";
+    my $url = "https://www.krak.dk/api/search/supersearch?" . join("&",
+	"query=" . urlencodeplus($query),
+	"profile=krak");
+
+    my ($json, $code) = $self->get_json($url, [ Referer => $ref ]);
+    defined($code) && 200 <= $code && $code <= 299 or
+	return undef;
+
+    # { index: "cs|ps|maps" }
+    return $json;
+}
+
+
+sub company
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $query = $params->{query} || "";
+
+    my $super = $self->_supersearch($query) or
+	return;
+    defined($super->{index}) or
+	return err(undef, "No supersearch/index returned from server");
+
+    my $count = $self->_count($query) or
+	return;
+    defined($count->{cs}) or
+	return err(undef, "No count/cs returned from server");
+
+    $super->{index} eq "cs" && $count->{cs} > 0 and
+	return $self->_cs($query);
+    $super->{index} eq "ps" && $count->{cs} > 0 and
+	return $self->_cs($query);
+
+    if ($super->{index} eq "maps") {
+	my $ypwpgeo = $self->_mapsearch($query, "ypwpgeo") or
+	    return;
+	$ypwpgeo->{search}->{geo}->{hits} == 1 &&
+	    $ypwpgeo->{search}->{yp}->{hits} > 0 and
+	    return $self->_mapsearch($query, "yp");
+	$ypwpgeo->{search}->{geo}->{hits} > 1 and
+	    return err(undef, "Query matches too many locations");	    
+    }
+
+    return err(undef, "Match failed");
+}
+
+
+sub person
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $query = $params->{query} || "";
+    my $super = $self->_supersearch($query) or
+	return;
+
+    if (!defined($super->{index})) {
+	return err(undef, "No supersearch index returned from server");
+    }
+    elsif ($super->{index} eq "maps") {
+	return $self->_mapsearch($query, "wp");
+    }
+    elsif ($super->{index} eq "ps") {
+	return $self->_ps($query);
+    }
+    else {
+	return err(undef, "Unexpected supersearch index '", $super->{_index}, "'");
+    }
+}
+
+
+sub caller
+{
+}
+
+
+__PACKAGE__;
+__END__
