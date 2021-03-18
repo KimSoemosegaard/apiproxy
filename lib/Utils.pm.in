@@ -168,7 +168,7 @@ sub htmlencode
     $str =~ s/\&/&amp;/g;
     $str =~ s/\</&lt;/g;
     $str =~ s/\>/&gt;/g;
-    utf8::encode($str);
+    # utf8::encode($str);
     return $str;
 }
 
@@ -179,7 +179,7 @@ sub htmldecode
     defined($str) && !ref($str) or
 	return $str;
 
-    utf8::decode($str);
+    # utf8::decode($str);
     $str =~ s/\>/&gt;/g;
     $str =~ s/\</&lt;/g;
     $str =~ s/\&/&amp;/g;

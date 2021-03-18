@@ -210,7 +210,7 @@ sub app
     # Setup parameters
     my $params = Plack::Request->new($env)->parameters() or
 	return error(HTTP_BAD_REQUEST, "Invalid parameters");
-
+    
     # Setup path information
     my $pi = $env->{PATH_INFO} || "/";
     if (-d TT2DIR . $pi) {
@@ -268,20 +268,15 @@ sub app_dump
 	push(@$body, "${k} => $env->{$k}\n");
     }
 
-    # Dumpe parameters
+    # Dump parameters
     push(@$body, "\n");
     for my $k (sort keys %$params) {
 	my $v = $params->{$k};
-	if (ref($v) eq "ARRAY") {
-	    push(@$body, "param: ${k} => [" . join(", ", @$v) . "]\n");
-	}
-	else {
-	    push(@$body, "param: ${k} => ${v}\n");
-	}
+	utf8::encode($v);
+	push(@$body, "param: ${k} => ${v}\n");
     }
 
     # Success
-    $body = utf8_to_bytes($body);
     return [ HTTP_OK, CT_TEXT, $body ];
 }
 
@@ -357,6 +352,7 @@ sub app_temp
 	    "Template:", $app->{temp}->error());
 
     # Success
+    utf8::encode($data);
     return [ HTTP_OK, CT_HTML, [ $data ] ];
 }
 
@@ -407,99 +403,97 @@ sub app_call
     my $json = $api->$func($params) or
 	return error(HTTP_OK, $@Package@::Err::err);
 
+    # Covert as needed for various formats
     my $csv = @Package@::JSON::json_to_list($json);
     my $result = app_temp($env, $params, "site/${site}/${func}", {
 	site => $site,
 	func => $func,
-	json => utf8_to_bytes($json),
-	json_data => json_to_data($json),
-	json_text => json_to_text($json),
-	csv => csv_encode($csv),
-	csv_data => csv_to_data($csv) });
+
+	# Text view
+	json => text_view($json),
+
+	# JSON view
+	json_view => json_view($json),
+	json_data => json_data($json),
+
+	# CSV view
+	csv_view => csv_view($csv),
+	csv_data => csv_data($csv) });
 }
 
 
-sub csv_encode
+sub text_view
 {
-    my $src = shift;
+    my $json = shift;
+    my $html;
 
-    my $dst = [];
-    foreach my $item (@$src) {
-	push(@$dst, [ htmlencode($item->[0]), htmlencode($item->[1]) ]);
+    if (!defined($json)) {
+	$html = undef;
+    }
+    elsif (!ref($json)) {
+	$html = htmlencode($json);
+    }
+    elsif (ref($json) eq "ARRAY") {
+	$html = [ map { htmlencode($_) } @$json ];
+    }
+    elsif (ref($json) eq "HASH") {
+	$html = { map { $_ => htmlencode($json->{$_}) } keys %$json };
+    }
+    else {
+	die "ERROR: text_view: unknown type '" . ref($json) . "'\n";
     }
 
-    return $dst;
+    return $html;
 }
 
 
-sub utf8_to_bytes
+sub json_view
 {
-    my $utf8 = shift;
+    my $json = shift;
 
-    if (!defined($utf8)) {
-	;
-    }
-    elsif (!ref($utf8)) {
-	utf8::encode($utf8);
-    }
-    elsif (ref($utf8) eq "ARRAY") {
-	$utf8 = [ map { utf8_to_bytes($_) } @$utf8 ];
-    }
-    elsif (ref($utf8) eq "HASH") {
-	$utf8 = {
-	    map { utf8_to_bytes($_) => utf8_to_bytes($utf8->{$_}) }
-	        (keys %$utf8)
-	};
-    }
-
-    return $utf8;
+    my $html = @Package@::JSON->new()->pretty()->encode($json);
+    return [ map { htmlencode($_) } (split(/[\n\r]/, $html)) ];
 }
 
 
-sub json_to_data
+sub json_data
 {
     my $json = shift;
 
     my $data = @Package@::JSON::json_to_text($json);
-    $data = utf8_to_bytes($data);
+    utf8::encode($data);
+
     $data = encode_base64($data);
     $data = "data:application/json;base64," . $data;
     return $data;
 }
 
 
-sub json_to_text
-{
-    my $json = shift;
-
-    my $data = @Package@::JSON->new()->pretty()->encode($json);
-    $data = htmlencode($data);
-
-    my $list = [];
-    foreach my $line (split(/[\n\r]/, $data)) {
-	$line = utf8_to_bytes($line);
-	push(@$list, $line);
-    }
-
-    return $list;
-}
-
-
-sub csv_to_data
+sub csv_view
 {
     my $csv = shift;
 
-    my @data = ();
+    return [ map { [ htmlencode($_->[0]), htmlencode($_->[1]) ] } @$csv ];
+}
+
+
+sub csv_data
+{
+    my $csv = shift;
+
+    my $data = [];
     for my $kv (@$csv) {
 	my ($k, $v) = @$kv;
 	$k =~ s{\\}{\\\\}g;
 	$k =~ s{"}{\\"}g;
 	$v =~ s{\\}{\\\\}g;
 	$v =~ s{"}{\\"}g;
-	push(@data, "\"${k}\",\"${v}\"");
+	push(@$data, "\"${k}\",\"${v}\"");
     }
-    my $data = join("\n", @data) . "\n";
-    $data = utf8_to_bytes($data);
+
+    $data = join("\n", @$data) . "\n";
+    utf8::encode($data);
+
     $data = encode_base64($data);
     $data = "data:text/csv;base64," . $data;
     return $data;

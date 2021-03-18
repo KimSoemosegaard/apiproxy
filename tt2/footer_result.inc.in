@@ -6,7 +6,7 @@
 
 <div id="json" class="tabcontent">
   <table class="view-json">
-[% FOREACH row IN json_text %]
+[% FOREACH row IN json_view %]
     <tr><td>[% row %]</td></tr>
 [% END %]
   </table>
@@ -18,7 +18,7 @@
 
 <div id="csv" class="tabcontent">
   <table class="view-csv">
-[% FOREACH row IN csv %]
+[% FOREACH row IN csv_view %]
     <tr><th>[% row.0 %]</th><td>[% row.1 %]</td></tr>
 [% END %]
   </table>

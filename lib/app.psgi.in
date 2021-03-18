@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ##  ====================================================================
-##  bin/@package@
+##  lib/@package@.psgi
 ##  ====================================================================
 
 ##  Pragmas
@@ -9,14 +9,7 @@ use warnings;
 use open qw(:std :utf8);
 use utf8;
 
-##  Packages
-use Plack::Runner;
-
 ##  Local packages
 use lib '@prefix@/lib';
 use @Package@::App;
-
-##  Start the application
-my $runner = Plack::Runner->new;
-#$runner->parse_options(qw(-E production));
-$runner->run(@Package@::App->new(@ARGV));
+my $app = @Package@::App->new();

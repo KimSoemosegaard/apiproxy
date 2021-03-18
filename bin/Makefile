@@ -5,9 +5,10 @@
 include		../config.mk
 bindir =	${prefix}/bin
 
+BINFILES +=	${package}
 BINFILES +=	jsonkv
 BINFILES +=	jsonpp
-BINFILES +=	${package}
+BINFILES +=	starman
 
 GENERATED +=	${BINFILES}
 

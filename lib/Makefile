@@ -12,6 +12,7 @@ LIBFILES +=	Err.pm
 LIBFILES +=	JSON.pm
 LIBFILES +=	LWP.pm
 LIBFILES +=	Utils.pm
+LIBFILES +=	app.psgi
 
 GENERATED +=	${LIBFILES}
 
