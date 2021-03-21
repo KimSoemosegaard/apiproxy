@@ -1,0 +1,71 @@
+##  ====================================================================
+##  api/robtex.com/robtex_com.pm
+##  ====================================================================
+
+package @Package@::API::robtex_com;
+use parent qw(@Package@::API);
+my $site = "robtex.com";
+
+##  Pragmas
+use strict;
+use warnings;
+use open qw(:std :utf8);
+use utf8;
+
+##  Packages
+use Data::Dumper;
+
+##  Local packages
+use lib '@prefix@/lib';
+use @Package@::Err;
+use @Package@::Utils;
+
+
+##
+##  robtex.com/asquery
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub asquery
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $asn = $params->{asn} || "";
+    $asn =~ s{^\s*(AS)?}{};
+    $asn =~ s{\s+$}{};
+    $asn =~ m{^\d+$} or
+	return err(undef, "Invalid AS number");
+
+    my $ref = "https://www.${site}/";
+    my $url = "https://freeapi.${site}/asquery/" . urlencode($asn);
+    return $self->get_json($url, [ Referer => $ref ]);
+}
+
+
+##
+##  robtex.com/ipquery
+##
+##  @param \%params	query parameters
+##  @return		JSON hash / array
+##
+
+sub ipquery
+{
+    my $self = shift;
+    my $params = shift || {};
+
+    my $ip = $params->{ip} || "";
+    $ip =~ m{\w\.\w} or
+	return err(undef, "Invalid IP address or domain name");
+
+    my $ref = "https://www.${site}/";
+    my $url = "https://freeapi.${site}/ipquery/" . urlencode($ip);
+    return $self->get_json($url, [ Referer => $ref ]);
+}
+
+
+__PACKAGE__;
+__END__

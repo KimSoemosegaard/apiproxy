@@ -1,0 +1,9 @@
+<form method="GET" action="/site/robtex.com/asquery">
+  <fieldset>
+    <legend>robtex.com / asquery</legend>
+    <label for="asn">AS Number:</label>
+    <input type="text" id="asn" name="asn"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

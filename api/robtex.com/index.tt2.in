@@ -1,0 +1,5 @@
+[% PROCESS header.inc %]
+<h2>robtex.com</h2>
+[% PROCESS site/robtex.com/asquery.inc %]
+[% PROCESS site/robtex.com/ipquery.inc %]
+[% PROCESS footer.inc %]

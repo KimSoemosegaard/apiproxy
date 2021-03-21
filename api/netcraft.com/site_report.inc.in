@@ -1,0 +1,9 @@
+<form method="GET" action="/site/netcraft.com/site_report">
+  <fieldset>
+    <legend>netcraft.com / site_report</legend>
+    <label for="site_report">site_report:</label>
+    <input type="text" id="site_report" name="site_report"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

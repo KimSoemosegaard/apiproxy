@@ -1,0 +1,42 @@
+[% PROCESS header.inc %]
+
+<h2>Sites</h2>
+
+<p>In general focus is on using online ressources that are freely
+available.  However, some may require registration in order to gain
+access or to get additional information. These are included too.</p>
+
+
+<h3><a href="https://celltrack.eu">celltrack.eu</a></h3>
+<p></p>
+
+
+<h3><a href="https://duckduckgo.com">duckduckgo.com</a></h3>
+<p></p>
+
+
+<h3><a href="https://hackertarget.com">hackertarget.com</a></h3>
+<p></p>
+
+
+<h3><a href="https://ipinfo.io">ipinfo.io</a></h3>
+<p></p>
+
+
+<h3><a href="https://jsoinp.com">jsoinp.com</a></h3>
+<p>Free API access.</p>
+<p>Status: Complete</p>
+
+<h3><a href="https://restcountries.eu">restcountries.eu</a></h3>
+<p>Free API access.</p>
+<p>Status: Implemented all the API endpoint that I found to be
+useful.</p>
+
+<h3><a href="https://robtex.com">robtex.com</a></h3>
+<p>Has web and API access as well as paid access. The free access only
+alows a limited amount of API queries. Web access provides more
+information than API access.</p>
+<p>Status: API access complete. Web not implemented.</p>
+
+
+[% PROCESS footer.inc %]

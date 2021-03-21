@@ -13,6 +13,7 @@ TT2FILES +=	header_result.inc
 TT2FILES +=	footer_result.inc
 TT2FILES +=	index.tt2
 TT2FILES +=	error.tt2
+TT2FILES +=	sites.tt2
 GENERATED +=	${TT2FILES}
 
 

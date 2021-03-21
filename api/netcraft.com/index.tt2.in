@@ -1,0 +1,4 @@
+[% PROCESS header.inc %]
+<h2>netcraft.com</h2>
+[% PROCESS site/netcraft.com/site_report.inc %]
+[% PROCESS footer.inc %]

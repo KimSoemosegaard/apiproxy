@@ -13,6 +13,7 @@ SUBDIRS +=	ipinfo.io
 SUBDIRS +=	jsonip.com
 SUBDIRS +=	krak.dk
 SUBDIRS +=	restcountries.eu
+SUBDIRS +=	robtex.com
 
 
 all::

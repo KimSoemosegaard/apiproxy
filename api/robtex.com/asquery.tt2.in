@@ -1,0 +1,16 @@
+[% PROCESS header_result.inc %]
+
+<tr><td> Status </td><td>[% json.status %]</td></tr>
+
+[% IF json.nets -%]
+<tr><th> Networks </th><td></td></tr>
+<tr><td> Net </td><td>[% json.nets.0.n %]</td></tr>
+<tr><td> BGP </td><td>[% json.nets.0.inbgp %]</td></tr>
+[%  FOREACH n IN [1..json.nets.max] -%]
+<tr><td> </dh><td></td></tr>
+<tr><td> Net </td><td>[% json.nets.$n.n %]</td></tr>
+<tr><td> BGP </td><td>[% json.nets.$n.inbgp %]</td></tr>
+[%  END -%]
+[% END -%]
+
+[% PROCESS footer_result.inc %]

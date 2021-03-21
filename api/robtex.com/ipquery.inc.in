@@ -1,0 +1,9 @@
+<form method="GET" action="/site/robtex.com/ipquery">
+  <fieldset>
+    <legend>robtex.com / ipquery</legend>
+    <label for="ip">IP Address or domain name:</label>
+    <input type="text" id="ip" name="ip"><br>
+    [% PROCESS submit_button %]
+  </fieldset>
+</form>
+

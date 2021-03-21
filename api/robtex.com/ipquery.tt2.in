@@ -1,0 +1,60 @@
+[% PROCESS header_result.inc %]
+
+<tr><td> Status </td><td>[% json.status %]</td></tr>
+
+<tr><th> AS Information </th><td></td></tr>
+<tr><td> AS Number </td><td>[% json.as %]</td></tr>
+<tr><td> AS Name </td><td>[% json.asname %]</td></tr>
+<tr><td> BGP Route </td><td>[% json.bgproute %]</td></tr>
+<tr><td> Route Description </td><td>[% json.routedesc %]</td></tr>
+<tr><td> WhoIs </td><td>[% json.whoisdesc %]</td></tr>
+
+<tr><th> Location </th><td></td></tr>
+<tr><td> City </td><td>[% json.city %]</td></tr>
+<tr><td> Country </td><td>[% json.country %]</td></tr>
+
+[% IF json.act.0 -%]
+<tr><th> DNS </th><td></td></tr>
+<tr><td> Observed </td><td>[% json.act.0.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.act.0.t %]</td></tr>
+[%  FOREACH n IN [1..json.act.max] -%]
+<tr><td> </td><td></td></tr>
+<tr><td> Observed </td><td>[% json.act.$n.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.act.$n.t %]</td></tr>
+[%  END -%]
+[% END -%]
+
+[% IF json.acth.0 -%]
+<tr><th> DNS (Historical) </th><td></td></tr>
+<tr><td> Observed </td><td>[% json.acth.0.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.acth.0.t %]</td></tr>
+[%  FOREACH n IN [1..json.acth.max] -%]
+<tr><td> </td><td></td></tr>
+<tr><td> Observed </td><td>[% json.acth.$n.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.acth.$n.t %]</td></tr>
+[%  END -%]
+[% END -%]
+
+[% IF json.pas.0 -%]
+<tr><th> Passive DNS </th><td></td></tr>
+<tr><td> Observed </td><td>[% json.pas.0.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.pas.0.t %]</td></tr>
+[%  FOREACH n IN [1..json.pas.max] -%]
+<tr><td> </td><td></td></tr>
+<tr><td> Observed </td><td>[% json.pas.$n.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.pas.$n.t %]</td></tr>
+[%  END -%]
+[% END -%]
+
+[% IF json.pash.0 -%]
+<tr><th> Passive DNS (Historical)</th><td></td></tr>
+<tr><td> Observed </td><td>[% json.pash.0.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.pash.0.t %]</td></tr>
+[%  FOREACH n IN [1..json.pash.max] -%]
+<tr><td> </td><td></td></tr>
+<tr><td> Observed </td><td>[% json.pash.$n.o %]</td></tr>
+<tr><td> Timestamp </td><td>[% json.pash.$n.t %]</td></tr>
+[%  END -%]
+[% END -%]
+
+[% PROCESS footer_result.inc %]

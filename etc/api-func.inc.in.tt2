@@ -1,4 +1,4 @@
-<form method="GET" action="/site/[% site %]/[% func %]" id="[% func %]">
+<form method="GET" action="/site/[% site %]/[% func %]">
   <fieldset>
     <legend>[% site %] / [% func %]</legend>
     <label for="[% func %]">[% func %]:</label>

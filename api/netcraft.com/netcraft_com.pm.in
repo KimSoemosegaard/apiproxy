@@ -1,10 +1,10 @@
 ##  ====================================================================
-##  api/[% site %]/[% site_ %].pm
+##  api/netcraft.com/netcraft_com.pm
 ##  ====================================================================
 
-package @Package@::API::[% site_ %];
+package @Package@::API::netcraft_com;
 use parent qw(@Package@::API);
-my $site = "[% site %]";
+my $site = "netcraft.com";
 
 ##  Pragmas
 use strict;
@@ -21,15 +21,14 @@ use @Package@::Err;
 use @Package@::Utils;
 
 
-[% FOREACH func IN funcs -%]
 ##
-##  [% site %]/[% func %]
+##  netcraft.com/site_report
 ##
 ##  @param \%params	query parameters
 ##  @return		JSON hash / array
 ##
 
-sub [% func %]
+sub site_report
 {
     my $self = shift;
     my $params = shift || {};
@@ -39,11 +38,10 @@ sub [% func %]
 	return err(undef, "Invalid param: '${param}'");
 
     my $ref = "https://${site}/";
-    my $url = "https://${site}/[% func %]" . "?param=" . urlencode($param);
+    my $url = "https://${site}/site_report" . "?param=" . urlencode($param);
     return $self->get_json($url, [ Referer => $ref ]);
 }
 
 
-[% END -%]
 __PACKAGE__;
 __END__

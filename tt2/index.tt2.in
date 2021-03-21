@@ -8,6 +8,11 @@
   <li><a href="/site/ipinfo.io">ipinfo.io</a></li>
   <li><a href="/site/jsonip.com">jsoinp.com</a></li>
   <li><a href="/site/restcountries.eu">restcountries.eu</a></li>
+  <li><a href="/site/robtex.com">robtex.com</a></li>
+</ul>
+
+<ul>
+  <li><a href="/sites">Sites</a></li>
 </ul>
 
 [% INCLUDE footer.inc -%]
